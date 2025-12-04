@@ -54,7 +54,16 @@ const createWindow = () => {
 
 // App ready
 app.whenReady().then(async () => {
-    // Initialize database connection (Prisma will auto-connect on first query)
+    console.log('🚀 App is ready');
+
+    // Initialize database first (sets DATABASE_URL and runs migrations)
+    const { initializeDatabase } = await import('./database');
+    try {
+        await initializeDatabase();
+    } catch (error) {
+        console.error('Failed to initialize database:', error);
+        // Continue anyway - user can try restarting
+    }
 
     // Set up IPC handlers
     setupProductHandlers();
@@ -64,20 +73,16 @@ app.whenReady().then(async () => {
     setupIssueHandlers();
     setupAnalyticsHandlers();
 
-    // Theme handling
-    ipcMain.handle('theme:get', () => {
-        return nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
-    });
-
-    ipcMain.handle('theme:set', (_, theme: 'light' | 'dark' | 'system') => {
+    // Theme handler
+    ipcMain.handle('theme:set', (_event, theme: 'light' | 'dark' | 'system') => {
         if (theme === 'system') {
             nativeTheme.themeSource = 'system';
         } else {
             nativeTheme.themeSource = theme;
         }
-        return theme;
     });
 
+    // Create window
     createWindow();
 
     app.on('activate', () => {
@@ -87,7 +92,7 @@ app.whenReady().then(async () => {
     });
 });
 
-// Quit when all windows are closed
+// Quit when all windows are closed (except on macOS)
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();
