@@ -1,0 +1,172 @@
+// Prisma Schema for DevPulse
+// Product → Client → Project → Issues hierarchy
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./devpulse.db"
+}
+
+// Product Model (VU Gear, IP Gear, EB Gear)
+model Product {
+  id          String   @id @default(uuid())
+  name        String   @unique // VU Gear, IP Gear, EB Gear
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  clients     Client[]
+
+  @@index([name])
+}
+
+// Client Model (Clients within each product)
+model Client {
+  id          String   @id @default(uuid())
+  name        String
+  productId   String
+  contactInfo String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  projects    Project[]
+
+  @@index([productId])
+  @@index([name])
+}
+
+// Project Model (Projects within each client)
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  clientId    String
+  projectType String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  status      String   @default("active") // active, completed, archived, on-hold
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  issues      Issue[]
+  features    Feature[]
+  developers  DeveloperProject[]
+  analytics   AnalyticsCache[]
+
+  @@index([clientId])
+  @@index([status])
+}
+
+// Developer Model
+model Developer {
+  id             String   @id @default(uuid())
+  fullName       String
+  email          String   @unique
+  skills         String   // JSON array stored as string
+  seniorityLevel String   // junior, mid, senior, lead, principal
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  issues         Issue[]
+  projects       DeveloperProject[]
+  analytics      AnalyticsCache[]
+
+  @@index([email])
+  @@index([seniorityLevel])
+}
+
+// Junction table for Many-to-Many relationship
+model DeveloperProject {
+  id          String   @id @default(uuid())
+  developerId String
+  projectId   String
+  assignedAt  DateTime @default(now())
+
+  developer   Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([developerId, projectId])
+  @@index([developerId])
+  @@index([projectId])
+}
+
+// Feature Model
+model Feature {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  projectId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  issues      Issue[]
+
+  @@index([projectId])
+}
+
+// Issue Model
+model Issue {
+  id              String    @id @default(uuid())
+  title           String
+  description     String
+  severity        String    // low, medium, high, critical
+  status          String    @default("open") // open, in-progress, resolved, closed
+  featureId       String?
+  projectId       String
+  assignedToId    String?
+  createdAt       DateTime  @default(now())
+  resolvedAt      DateTime?
+  resolutionTime  Int?      // in hours
+  fixQuality      Int?      // 1-5 rating
+  isRecurring     Boolean   @default(false)
+  recurrenceCount Int       @default(0)
+  parentIssueId   String?   // if this is a recurring issue
+  notes           String?
+  attachments     String?   // JSON array of file paths
+
+  // Relations
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignedTo      Developer? @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+  feature         Feature?   @relation(fields: [featureId], references: [id], onDelete: SetNull)
+  parentIssue     Issue?     @relation("IssueRecurrence", fields: [parentIssueId], references: [id], onDelete: SetNull)
+  childIssues     Issue[]    @relation("IssueRecurrence")
+
+  @@index([projectId])
+  @@index([assignedToId])
+  @@index([featureId])
+  @@index([status])
+  @@index([severity])
+  @@index([isRecurring])
+}
+
+// Analytics Cache Model (for performance optimization)
+model AnalyticsCache {
+  id                   String   @id @default(uuid())
+  developerId          String?
+  projectId            String?
+  productivityScore    Float?
+  avgResolutionTime    Float?
+  recurringBugCount    Int?
+  totalIssuesResolved  Int?
+  featureStabilityScore Float?
+  calculatedAt         DateTime @default(now())
+
+  // Relations
+  developer            Developer? @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  project              Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([developerId])
+  @@index([projectId])
+  @@index([calculatedAt])
+}
