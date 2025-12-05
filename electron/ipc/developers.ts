@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron';
-import { PrismaClient } from '@prisma/client';
+import { getPrisma } from "../prisma";
 
-const prisma = new PrismaClient();
+// Using shared getPrisma()
 
 export function setupDeveloperHandlers() {
     // Get all developers

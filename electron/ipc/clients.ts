@@ -1,11 +1,10 @@
 import { ipcMain } from 'electron';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { getPrisma } from '../prisma';
 
 export function setupClientHandlers() {
     // Get all clients
     ipcMain.handle('clients:getAll', async (_, filters?: any) => {
+        const prisma = getPrisma();
         try {
             const where: any = {};
 

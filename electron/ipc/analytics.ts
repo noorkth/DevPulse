@@ -1,8 +1,8 @@
 import { ipcMain } from 'electron';
-import { PrismaClient } from '@prisma/client';
+import { getPrisma } from "../prisma";
 import { differenceInDays, sub } from 'date-fns';
 
-const prisma = new PrismaClient();
+// Using shared getPrisma()
 
 export function setupAnalyticsHandlers() {
     // Get dashboard statistics

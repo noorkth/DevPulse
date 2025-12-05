@@ -1,23 +1,5 @@
 import { ipcMain } from 'electron';
-import { PrismaClient } from '@prisma/client';
-import { getDatabasePath } from '../database';
-
-// Lazy-initialize Prisma Client with correct database path
-let prismaInstance: PrismaClient | null = null;
-function getPrisma(): PrismaClient {
-    if (!prismaInstance) {
-        const dbPath = getDatabasePath();
-        prismaInstance = new PrismaClient({
-            datasources: {
-                db: {
-                    url: `file:${dbPath}`
-                }
-            }
-        });
-        console.log(`✅ Prisma Client initialized with database: ${dbPath}`);
-    }
-    return prismaInstance;
-}
+import { getPrisma } from '../prisma';
 
 export function setupProductHandlers() {
     // Get all products
