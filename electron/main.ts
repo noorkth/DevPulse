@@ -84,8 +84,8 @@ app.whenReady().then(async () => {
 
     // App version handler
     ipcMain.handle('app:getVersion', () => {
-        const packageJson = require('../package.json');
-        return packageJson.version;
+        // Use Electron's app.getVersion() which reads from package.json correctly in both dev and production
+        return app.getVersion();
     });
 
     // Create window
