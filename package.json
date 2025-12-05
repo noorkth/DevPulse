@@ -1,6 +1,6 @@
 {
   "name": "devpulse",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "Developer Productivity & Issue Intelligence Desktop App",
   "main": "dist-electron/main.js",
   "scripts": {
@@ -60,7 +60,7 @@
         "dmg",
         "zip"
       ],
-      "icon": "assets/icons/icon.png"
+      "icon": "assets/icons/icon.icns"
     },
     "files": [
       "dist/**/*",
