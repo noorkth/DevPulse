@@ -6,6 +6,7 @@ import { getPrisma } from "../prisma";
 export function setupDeveloperHandlers() {
     // Get all developers
     ipcMain.handle('developers:getAll', async () => {
+        const prisma = getPrisma();
         try {
             const developers = await prisma.developer.findMany({
                 include: {
@@ -28,6 +29,7 @@ export function setupDeveloperHandlers() {
 
     // Get developer by ID with detailed stats
     ipcMain.handle('developers:getById', async (_, id: string) => {
+        const prisma = getPrisma();
         try {
             const developer = await prisma.developer.findUnique({
                 where: { id },
@@ -90,6 +92,7 @@ export function setupDeveloperHandlers() {
 
     // Create new developer
     ipcMain.handle('developers:create', async (_, data: any) => {
+        const prisma = getPrisma();
         try {
             const developer = await prisma.developer.create({
                 data: {
@@ -123,6 +126,7 @@ export function setupDeveloperHandlers() {
 
     // Update developer
     ipcMain.handle('developers:update', async (_, id: string, data: any) => {
+        const prisma = getPrisma();
         try {
             const developer = await prisma.developer.update({
                 where: { id },
@@ -163,6 +167,7 @@ export function setupDeveloperHandlers() {
 
     // Delete developer
     ipcMain.handle('developers:delete', async (_, id: string) => {
+        const prisma = getPrisma();
         try {
             await prisma.developer.delete({
                 where: { id },
@@ -177,6 +182,7 @@ export function setupDeveloperHandlers() {
 
     // Get developer productivity score
     ipcMain.handle('developers:getProductivityScore', async (_, id: string, timeframe?: any) => {
+        const prisma = getPrisma();
         try {
             const developer = await prisma.developer.findUnique({
                 where: { id },

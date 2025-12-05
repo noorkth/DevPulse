@@ -7,6 +7,7 @@ import { differenceInHours } from 'date-fns';
 export function setupIssueHandlers() {
     // Get all issues with filters
     ipcMain.handle('issues:getAll', async (_, filters?: any) => {
+        const prisma = getPrisma();
         try {
             const where: any = {};
 
@@ -36,6 +37,7 @@ export function setupIssueHandlers() {
 
     // Get issue by ID
     ipcMain.handle('issues:getById', async (_, id: string) => {
+        const prisma = getPrisma();
         try {
             const issue = await prisma.issue.findUnique({
                 where: { id },
@@ -57,6 +59,7 @@ export function setupIssueHandlers() {
 
     // Create new issue
     ipcMain.handle('issues:create', async (_, data: any) => {
+        const prisma = getPrisma();
         try {
             const issue = await prisma.issue.create({
                 data: {
@@ -86,6 +89,7 @@ export function setupIssueHandlers() {
 
     // Update issue
     ipcMain.handle('issues:update', async (_, id: string, data: any) => {
+        const prisma = getPrisma();
         try {
             const issue = await prisma.issue.update({
                 where: { id },
@@ -115,6 +119,7 @@ export function setupIssueHandlers() {
 
     // Resolve issue
     ipcMain.handle('issues:resolve', async (_, id: string, fixQuality: number) => {
+        const prisma = getPrisma();
         try {
             const issue = await prisma.issue.findUnique({
                 where: { id },
@@ -151,6 +156,7 @@ export function setupIssueHandlers() {
 
     // Detect recurrence
     ipcMain.handle('issues:detectRecurrence', async (_, issueId: string) => {
+        const prisma = getPrisma();
         try {
             const issue = await prisma.issue.findUnique({
                 where: { id: issueId },

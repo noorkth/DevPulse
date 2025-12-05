@@ -7,6 +7,7 @@ import { differenceInDays, sub } from 'date-fns';
 export function setupAnalyticsHandlers() {
     // Get dashboard statistics
     ipcMain.handle('analytics:getDashboardStats', async () => {
+        const prisma = getPrisma();
         try {
             const totalIssues = await prisma.issue.count();
             const openIssues = await prisma.issue.count({ where: { status: 'open' } });
@@ -54,6 +55,7 @@ export function setupAnalyticsHandlers() {
 
     // Get productivity rankings
     ipcMain.handle('analytics:getProductivityRankings', async (_, timeframe?: any) => {
+        const prisma = getPrisma();
         try {
             const developers = await prisma.developer.findMany({
                 include: {
@@ -116,6 +118,7 @@ export function setupAnalyticsHandlers() {
 
     // Get feature stability scores
     ipcMain.handle('analytics:getFeatureStability', async (_, projectId?: string) => {
+        const prisma = getPrisma();
         try {
             const features = await prisma.feature.findMany({
                 where: projectId ? { projectId } : {},
@@ -158,6 +161,7 @@ export function setupAnalyticsHandlers() {
 
     // Get recurrence analysis
     ipcMain.handle('analytics:getRecurrenceAnalysis', async () => {
+        const prisma = getPrisma();
         try {
             const developers = await prisma.developer.findMany({
                 include: {
@@ -223,6 +227,7 @@ export function setupAnalyticsHandlers() {
 
     // Get time-to-fix data
     ipcMain.handle('analytics:getTimeToFixData', async (_, filters?: any) => {
+        const prisma = getPrisma();
         try {
             const where: any = { resolutionTime: { not: null } };
 
@@ -288,6 +293,7 @@ export function setupAnalyticsHandlers() {
 
     // Get project comparison
     ipcMain.handle('analytics:getProjectComparison', async () => {
+        const prisma = getPrisma();
         try {
             const projects = await prisma.project.findMany({
                 where: { status: { not: 'archived' } },
