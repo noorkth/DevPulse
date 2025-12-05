@@ -1,6 +1,6 @@
 {
   "name": "devpulse",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "description": "Developer Productivity & Issue Intelligence Desktop App",
   "main": "dist-electron/main.js",
   "scripts": {
