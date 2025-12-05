@@ -56,15 +56,26 @@ const createWindow = () => {
 app.whenReady().then(async () => {
     console.log('🚀 App is ready');
 
-    // Initialize database first (sets DATABASE_URL and runs migrations)
-    const { initializeDatabase } = await import('./database');
+    console.log('='.repeat(60));
+    console.log('🚀 DEVPULSE STARTING - INITIALIZING DATABASE');
+    console.log('='.repeat(60));
+
     try {
+        const { initializeDatabase } = await import('./database');
+        console.log('📦 Database module loaded successfully');
         await initializeDatabase();
+        console.log('✅ Database initialization completed');
     } catch (error) {
-        console.error('Failed to initialize database:', error);
-        // Continue anyway - user can try restarting
+        console.error('='.repeat(60));
+        console.error('❌❌❌ CRITICAL: Database initialization FAILED ❌❌❌');
+        console.error('='.repeat(60));
+        console.error('Error:', error);
+        console.error('Error stack:', (error as Error).stack);
+        console.error('='.repeat(60));
+        // Don't throw - allow app to continue but log prominently
     }
 
+    console.log('🎨 Setting up IPC handlers...');
     // Set up IPC handlers
     setupProductHandlers();
     setupClientHandlers();
