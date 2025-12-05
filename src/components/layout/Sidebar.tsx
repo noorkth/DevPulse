@@ -19,7 +19,7 @@ const Sidebar: React.FC = () => {
     return (
         <aside className="sidebar">
             <div className="sidebar-header">
-                <img src="/assets/icons/devpulse-icon.png" alt="DevPulse" className="sidebar-logo-icon" />
+                <span className="sidebar-logo-icon">⚡</span>
                 <span className="sidebar-logo-text">DevPulse</span>
             </div>
 
