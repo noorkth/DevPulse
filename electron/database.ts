@@ -160,12 +160,10 @@ export async function initializeDatabase(): Promise<void> {
                     "id" TEXT NOT NULL PRIMARY KEY,
                     "developerId" TEXT NOT NULL,
                     "projectId" TEXT NOT NULL,
-                    "joinedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    "role" TEXT NOT NULL DEFAULT 'developer',
-                    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    "assignedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY ("developerId") REFERENCES "Developer"("id") ON DELETE CASCADE,
-                    FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE CASCADE
+                    FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE CASCADE,
+                    UNIQUE ("developerId", "projectId")
                 );
             `);
             console.log('✅ Junction tables created');
