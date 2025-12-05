@@ -3,10 +3,13 @@ import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import Input from '../components/common/Input';
+import Loading from '../components/common/Loading';
+import EmptyState from '../components/common/EmptyState';
 import './Products.css';
 
 const Products: React.FC = () => {
     const [products, setProducts] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<any | null>(null);
     const [formData, setFormData] = useState({
@@ -20,10 +23,13 @@ const Products: React.FC = () => {
 
     const loadProducts = async () => {
         try {
+            setLoading(true);
             const data = await window.api.products.getAll();
             setProducts(data);
         } catch (error) {
             console.error('Error loading products:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -93,15 +99,18 @@ const Products: React.FC = () => {
                 <Button onClick={handleOpenModal}>+ New Product</Button>
             </div>
 
-            {products.length === 0 ? (
-                <Card>
-                    <div className="empty-state">
-                        <div className="empty-icon">📦</div>
-                        <h3>No products yet</h3>
-                        <p>Create your first product to organize clients and projects</p>
-                        <Button onClick={handleOpenModal}>Create Product</Button>
-                    </div>
-                </Card>
+            {loading ? (
+                <Loading size="medium" text="Loading products..." />
+            ) : products.length === 0 ? (
+                <EmptyState
+                    icon="📦"
+                    title="No products yet"
+                    description="Create your first product to organize clients and projects"
+                    action={{
+                        label: 'Create Product',
+                        onClick: handleOpenModal
+                    }}
+                />
             ) : (
                 <div className="products-grid">
                     {products.map((product) => (
