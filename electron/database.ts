@@ -39,22 +39,41 @@ export async function initializeDatabase(): Promise<void> {
         console.log('🆕 First launch detected - initializing database...');
 
         try {
-            // Get the path to prisma binary
+            // Get the path to prisma binary and schema
             const prismaPath = isDev
                 ? path.join(process.cwd(), 'node_modules', '.bin', 'prisma')
-                : path.join(process.resourcesPath, 'app', 'node_modules', '.bin', 'prisma');
+                : path.join(process.resourcesPath, 'app', 'node_modules', '.prisma', 'client', 'query-engine-darwin-arm64');
 
-            // Run migrations
-            console.log('🔄 Running database migrations...');
-            const { stdout, stderr } = await execAsync(`"${prismaPath}" migrate deploy`, {
-                env: {
-                    ...process.env,
-                    DATABASE_URL: `file:${dbPath}`,
-                },
-            });
+            const schemaPath = isDev
+                ? path.join(process.cwd(), 'prisma', 'schema.prisma')
+                : path.join(process.resourcesPath, 'app', 'prisma', 'schema.prisma');
 
-            if (stdout) console.log(stdout);
-            if (stderr) console.error(stderr);
+            // In production, use db push instead of migrate deploy
+            // This creates tables directly from schema without needing migration files
+            console.log('🔄 Creating database schema...');
+
+            if (isDev) {
+                // Dev: use migrate deploy
+                const { stdout, stderr } = await execAsync(`"${prismaPath}" migrate deploy`, {
+                    env: {
+                        ...process.env,
+                        DATABASE_URL: `file:${dbPath}`,
+                    },
+                });
+                if (stdout) console.log(stdout);
+                if (stderr) console.error(stderr);
+            } else {
+                // Production: use db push (no migration files needed)
+                const prismaBinary = path.join(process.resourcesPath, 'app', 'node_modules', '.bin', 'prisma');
+                const { stdout, stderr } = await execAsync(`"${prismaBinary}" db push --skip-generate --schema="${schemaPath}"`, {
+                    env: {
+                        ...process.env,
+                        DATABASE_URL: `file:${dbPath}`,
+                    },
+                });
+                if (stdout) console.log(stdout);
+                if (stderr && !stderr.includes('warn')) console.error(stderr);
+            }
 
             console.log('✅ Database initialized successfully!');
         } catch (error) {
