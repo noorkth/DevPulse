@@ -104,6 +104,7 @@ const Settings: React.FC = () => {
                         <h2>DevPulse</h2>
                         <p className="about-tagline">Developer Productivity & Issue Intelligence</p>
                         <p className="version">Version {appVersion}</p>
+                        <p className="developer-credit">Developed by <strong>noorkth</strong></p>
 
                         <div className="about-info">
                             <p>Built with Electron, React, and Prisma</p>
