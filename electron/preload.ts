@@ -83,6 +83,11 @@ const api = {
         toPDF: (data: any, filename: string) =>
             ipcRenderer.invoke('export:toPDF', data, filename),
     },
+
+    // App
+    app: {
+        getVersion: () => ipcRenderer.invoke('app:getVersion'),
+    },
 };
 
 // Expose API to renderer

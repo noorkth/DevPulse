@@ -22,3 +22,19 @@ declare module '*.gif' {
     const value: string;
     export default value;
 }
+
+// Electron API types
+declare global {
+    interface Window {
+        api: {
+            app: {
+                getVersion: () => Promise<string>;
+            };
+            theme: {
+                get: () => Promise<'light' | 'dark'>;
+                set: (theme: 'light' | 'dark' | 'system') => Promise<void>;
+            };
+            [key: string]: any;
+        };
+    }
+}
