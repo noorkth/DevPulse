@@ -154,13 +154,18 @@ export async function initializeDatabase(): Promise<void> {
             `);
             console.log('✅ AnalyticsCache table created');
 
-            // Create junction tables
+            // Create DeveloperProject junction table (explicit model in schema)
             await prisma.$executeRawUnsafe(`
-                CREATE TABLE IF NOT EXISTS "_DeveloperToProject" (
-                    "A" TEXT NOT NULL,
-                    "B" TEXT NOT NULL,
-                    FOREIGN KEY ("A") REFERENCES "Developer"("id") ON DELETE CASCADE,
-                    FOREIGN KEY ("B") REFERENCES "Project"("id") ON DELETE CASCADE
+                CREATE TABLE IF NOT EXISTS "DeveloperProject" (
+                    "id" TEXT NOT NULL PRIMARY KEY,
+                    "developerId" TEXT NOT NULL,
+                    "projectId" TEXT NOT NULL,
+                    "joinedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    "role" TEXT NOT NULL DEFAULT 'developer',
+                    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY ("developerId") REFERENCES "Developer"("id") ON DELETE CASCADE,
+                    FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE CASCADE
                 );
             `);
             console.log('✅ Junction tables created');
