@@ -3,12 +3,15 @@ import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import Input from '../components/common/Input';
+import Loading from '../components/common/Loading';
+import EmptyState from '../components/common/EmptyState';
 import './Projects.css';
 
 const Projects: React.FC = () => {
     const [products, setProducts] = useState<any[]>([]);
     const [clients, setClients] = useState<any[]>([]);
     const [projects, setProjects] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProject, setEditingProject] = useState<any | null>(null);
     const [selectedProduct, setSelectedProduct] = useState<string>('');
@@ -28,6 +31,7 @@ const Projects: React.FC = () => {
 
     const loadAllData = async () => {
         try {
+            setLoading(true);
             const [productsData, clientsData, projectsData] = await Promise.all([
                 window.api.products.getAll(),
                 window.api.clients.getAll(),
@@ -39,6 +43,8 @@ const Projects: React.FC = () => {
             setProjects(projectsData);
         } catch (error) {
             console.error('Error loading data:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -136,63 +142,76 @@ const Projects: React.FC = () => {
             </div>
 
             {/* Projects organized by Product */}
-            {projectsByProduct.map(({ product, projects: productProjects }) => (
-                <div key={product.id} className="product-section">
-                    <div className="product-header">
-                        <h3>📦 {product.name}</h3>
-                        <span className="count-badge">{productProjects.length} projects</span>
-                    </div>
-
-                    {productProjects.length === 0 ? (
-                        <p className="no-data">No projects in this product yet</p>
-                    ) : (
-                        <div className="projects-grid">
-                            {productProjects.map((project) => (
-                                <Card key={project.id}>
-                                    <div className="project-card">
-                                        <div className="project-header">
-                                            <h3>{project.name}</h3>
-                                            <span className={`status-badge status-${project.status}`}>
-                                                {project.status}
-                                            </span>
-                                        </div>
-
-                                        <div className="project-meta">
-                                            <p className="product-name">🏢 {project.client.product.name}</p>
-                                            <p className="client-name">👤 Client: {project.client.name}</p>
-                                            <p className="project-type">🔧 {project.projectType}</p>
-                                        </div>
-
-                                        {project.description && (
-                                            <p className="project-description">{project.description}</p>
-                                        )}
-
-                                        <div className="project-stats">
-                                            <div className="stat">
-                                                <span className="stat-label">Issues:</span>
-                                                <span className="stat-value">{project._count?.issues || 0}</span>
-                                            </div>
-                                            <div className="stat">
-                                                <span className="stat-label">Developers:</span>
-                                                <span className="stat-value">{project._count?.developers || 0}</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="project-actions">
-                                            <Button variant="secondary" size="sm" onClick={() => handleEdit(project)}>
-                                                Edit
-                                            </Button>
-                                            <Button variant="danger" size="sm" onClick={() => handleDelete(project.id)}>
-                                                Archive
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </Card>
-                            ))}
+            {loading ? (
+                <Loading size="medium" text="Loading projects..." />
+            ) : projects.length === 0 ? (
+                <EmptyState
+                    icon="📋"
+                    title="No projects yet"
+                    description="Create your first project to start tracking development work"
+                    action={{
+                        label: 'Create Project',
+                        onClick: handleOpenModal
+                    }}
+                />
+            ) : (
+                projectsByProduct.map(({ product, projects: productProjects }) => (
+                    <div key={product.id} className="product-section">
+                        <div className="product-header">
+                            <h3>📦 {product.name}</h3>
+                            <span className="count-badge">{productProjects.length} projects</span>
                         </div>
-                    )}
-                </div>
-            ))}
+
+                        {productProjects.length === 0 ? (
+                            <p className="no-data">No projects in this product yet</p>
+                        ) : (
+                            <div className="projects-grid">
+                                {productProjects.map((project) => (
+                                    <Card key={project.id}>
+                                        <div className="project-card">
+                                            <div className="project-header">
+                                                <h3>{project.name}</h3>
+                                                <span className={`status-badge status-${project.status}`}>
+                                                    {project.status}
+                                                </span>
+                                            </div>
+
+                                            <div className="project-meta">
+                                                <p className="product-name">🏢 {project.client.product.name}</p>
+                                                <p className="client-name">👤 Client: {project.client.name}</p>
+                                                <p className="project-type">🔧 {project.projectType}</p>
+                                            </div>
+
+                                            {project.description && (
+                                                <p className="project-description">{project.description}</p>
+                                            )}
+
+                                            <div className="project-stats">
+                                                <div className="stat">
+                                                    <span className="stat-label">Issues:</span>
+                                                    <span className="stat-value">{project._count?.issues || 0}</span>
+                                                </div>
+                                                <div className="stat">
+                                                    <span className="stat-label">Developers:</span>
+                                                    <span className="stat-value">{project._count?.developers || 0}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="project-actions">
+                                                <Button variant="secondary" size="sm" onClick={() => handleEdit(project)}>
+                                                    Edit
+                                                </Button>
+                                                <Button variant="danger" size="sm" onClick={() => handleDelete(project.id)}>
+                                                    Archive
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                ))}
 
             {/* Create/Edit Modal */}
             <Modal
