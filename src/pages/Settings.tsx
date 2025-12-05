@@ -17,7 +17,7 @@ const Settings: React.FC = () => {
             setTheme(currentTheme);
 
             // Load version via IPC (works in both dev and production)
-            const version = await window.api.app.getVersion();
+            const version = await (window.api as any).app.getVersion();
             setAppVersion(version);
         } catch (error) {
             console.error('Error loading settings:', error);
