@@ -73,7 +73,11 @@ app.whenReady().then(async () => {
     setupIssueHandlers();
     setupAnalyticsHandlers();
 
-    // Theme handler
+    // Theme handlers
+    ipcMain.handle('theme:get', () => {
+        return nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
+    });
+
     ipcMain.handle('theme:set', (_event, theme: 'light' | 'dark' | 'system') => {
         if (theme === 'system') {
             nativeTheme.themeSource = 'system';
@@ -84,8 +88,15 @@ app.whenReady().then(async () => {
 
     // App version handler
     ipcMain.handle('app:getVersion', () => {
-        // Use Electron's app.getVersion() which reads from package.json correctly in both dev and production
-        return app.getVersion();
+        try {
+            // Use Electron's app.getVersion() which reads from package.json correctly in both dev and production
+            const version = app.getVersion();
+            console.log('✅ Version retrieved:', version);
+            return version;
+        } catch (error) {
+            console.error('❌ Error getting version:', error);
+            return '1.0.0';
+        }
     });
 
     // Create window

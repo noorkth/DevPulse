@@ -13,14 +13,18 @@ const Settings: React.FC = () => {
 
     const loadSettings = async () => {
         try {
+            console.log('⏳ Loading settings...');
             const currentTheme = await window.api.theme.get();
+            console.log('✅ Theme loaded:', currentTheme);
             setTheme(currentTheme);
 
             // Load version via IPC (works in both dev and production)
+            console.log('⏳ Getting version...');
             const version = await (window.api as any).app.getVersion();
+            console.log('✅ Version loaded:', version);
             setAppVersion(version);
         } catch (error) {
-            console.error('Error loading settings:', error);
+            console.error('❌ Error loading settings:', error);
             setAppVersion('Unknown'); // Fallback version
         }
     };
