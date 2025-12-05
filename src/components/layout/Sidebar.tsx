@@ -2,6 +2,9 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './Sidebar.css';
 
+// Embedded logo as base64 - works in both dev and production
+const LOGO_BASE64 = 'data:image/png;base64,/9j/4AAQSkZJRgABAQEBLAEsAAD/6xdlSlAAAQAAAAEAABdianVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAFzVqdW1kQXBwMQARABAB9AACq7EBY21oZAAAAAAdY21kcGV4aWYABs4ABsw7AAACAAAAFmNtZHByZHNzAAAANQAAAgABAAAGzAAAAAADBQAABQEAAAEBAAABAQUCBQEDDQEBAQEkBQAAAQEBAzQAAAQBAQEBAQEAAAAYY21kcFhNUCAANQAAAgABAAAGzAAAAAADBQAABQEAAAEBAAABAQUCBQEDDQEBAQEkCAQAAQEBAzvDPgKDzsH/2Q==';
+
 const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '📊' },
     { path: '/products', label: 'Products', icon: '📦' },
@@ -19,7 +22,7 @@ const Sidebar: React.FC = () => {
     return (
         <aside className="sidebar">
             <div className="sidebar-header">
-                <img src="/assets/icons/devpulse-icon.png" alt="DevPulse" className="sidebar-logo-icon" />
+                <img src={LOGO_BASE64} alt="DevPulse" className="sidebar-logo-icon" />
                 <span className="sidebar-logo-text">DevPulse</span>
             </div>
 
