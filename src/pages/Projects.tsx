@@ -211,7 +211,8 @@ const Projects: React.FC = () => {
                             </div>
                         )}
                     </div>
-                ))}
+                ))
+            )}
 
             {/* Create/Edit Modal */}
             <Modal
