@@ -19,8 +19,9 @@ exports.default = async function (context) {
     ? path.join(appPath, 'Contents', 'Resources')
     : path.join(appPath, 'resources');
 
-  const asarUnpackedPath = path.join(resourcesPath, 'app.asar.unpacked');
-  const nodeModulesPath = path.join(asarUnpackedPath, 'node_modules');
+  // Because asar is disabled in electron-builder config, app files are in 'app' not 'app.asar.unpacked'
+  const appResourcePath = path.join(resourcesPath, 'app');
+  const nodeModulesPath = path.join(appResourcePath, 'node_modules');
 
   // Ensure node_modules directory exists
   if (!fs.existsSync(nodeModulesPath)) {

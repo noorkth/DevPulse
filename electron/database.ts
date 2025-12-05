@@ -42,7 +42,7 @@ export async function initializeDatabase(): Promise<void> {
             // Get the path to prisma binary
             const prismaPath = isDev
                 ? path.join(process.cwd(), 'node_modules', '.bin', 'prisma')
-                : path.join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', '.bin', 'prisma');
+                : path.join(process.resourcesPath, 'app', 'node_modules', '.bin', 'prisma');
 
             // Run migrations
             console.log('🔄 Running database migrations...');
