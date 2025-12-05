@@ -82,6 +82,12 @@ app.whenReady().then(async () => {
         }
     });
 
+    // App version handler
+    ipcMain.handle('app:getVersion', () => {
+        const packageJson = require('../package.json');
+        return packageJson.version;
+    });
+
     // Create window
     createWindow();
 

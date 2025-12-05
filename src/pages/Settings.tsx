@@ -16,12 +16,12 @@ const Settings: React.FC = () => {
             const currentTheme = await window.api.theme.get();
             setTheme(currentTheme);
 
-            // Load version from package.json
-            const version = require('../../package.json').version;
+            // Load version via IPC (works in both dev and production)
+            const version = await window.api.app.getVersion();
             setAppVersion(version);
         } catch (error) {
             console.error('Error loading settings:', error);
-            setAppVersion('1.0.0'); // Fallback version
+            setAppVersion('Unknown'); // Fallback version
         }
     };
 
