@@ -5,6 +5,7 @@ import './Settings.css';
 
 const Settings: React.FC = () => {
     const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+    const [appVersion, setAppVersion] = useState<string>('Loading...');
 
     useEffect(() => {
         loadSettings();
@@ -14,8 +15,13 @@ const Settings: React.FC = () => {
         try {
             const currentTheme = await window.api.theme.get();
             setTheme(currentTheme);
+
+            // Load version from package.json
+            const version = require('../../package.json').version;
+            setAppVersion(version);
         } catch (error) {
             console.error('Error loading settings:', error);
+            setAppVersion('1.0.0'); // Fallback version
         }
     };
 
@@ -93,7 +99,7 @@ const Settings: React.FC = () => {
                         <div className="about-logo">⚡</div>
                         <h2>DevPulse</h2>
                         <p className="about-tagline">Developer Productivity & Issue Intelligence</p>
-                        <p className="version">Version 1.0.0</p>
+                        <p className="version">Version {appVersion}</p>
 
                         <div className="about-info">
                             <p>Built with Electron, React, and Prisma</p>
