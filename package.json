@@ -60,7 +60,7 @@
         "dmg",
         "zip"
       ],
-      "icon": "assets/icons/icon.png"
+      "icon": "assets/icons/icon.icns"
     },
     "files": [
       "dist/**/*",
