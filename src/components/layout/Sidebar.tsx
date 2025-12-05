@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './Sidebar.css';
+import logo from '/assets/icons/devpulse-icon.png';
 
 const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '📊' },
@@ -19,7 +20,7 @@ const Sidebar: React.FC = () => {
     return (
         <aside className="sidebar">
             <div className="sidebar-header">
-                <span className="sidebar-logo-icon">⚡</span>
+                <img src={logo} alt="DevPulse" className="sidebar-logo-icon" />
                 <span className="sidebar-logo-text">DevPulse</span>
             </div>
 
