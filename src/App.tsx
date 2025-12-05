@@ -9,6 +9,7 @@ import Issues from './pages/Issues';
 import Developers from './pages/Developers';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
+import { ToastProvider } from './components/common/Toast';
 
 function App() {
     const [theme, setTheme] = useState<'light' | 'dark'>('dark');
@@ -34,21 +35,23 @@ function App() {
     };
 
     return (
-        <BrowserRouter>
-            <Layout theme={theme} onToggleTheme={toggleTheme}>
-                <Routes>
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/products" element={<Products />} />
-                    <Route path="/clients" element={<Clients />} />
-                    <Route path="/projects" element={<Projects />} />
-                    <Route path="/issues" element={<Issues />} />
-                    <Route path="/developers" element={<Developers />} />
-                    <Route path="/analytics" element={<Analytics />} />
-                    <Route path="/settings" element={<Settings />} />
-                </Routes>
-            </Layout>
-        </BrowserRouter>
+        <ToastProvider>
+            <BrowserRouter>
+                <Layout theme={theme} onToggleTheme={toggleTheme}>
+                    <Routes>
+                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/products" element={<Products />} />
+                        <Route path="/clients" element={<Clients />} />
+                        <Route path="/projects" element={<Projects />} />
+                        <Route path="/issues" element={<Issues />} />
+                        <Route path="/developers" element={<Developers />} />
+                        <Route path="/analytics" element={<Analytics />} />
+                        <Route path="/settings" element={<Settings />} />
+                    </Routes>
+                </Layout>
+            </BrowserRouter>
+        </ToastProvider>
     );
 }
 
