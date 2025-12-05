@@ -34,6 +34,7 @@ export function setupClientHandlers() {
 
     // Get client by ID
     ipcMain.handle('clients:getById', async (_, id: string) => {
+        const prisma = getPrisma();
         try {
             const client = await prisma.client.findUnique({
                 where: { id },
@@ -61,6 +62,7 @@ export function setupClientHandlers() {
 
     // Create new client
     ipcMain.handle('clients:create', async (_, data: any) => {
+        const prisma = getPrisma();
         try {
             const client = await prisma.client.create({
                 data: {
@@ -79,6 +81,7 @@ export function setupClientHandlers() {
 
     // Update client
     ipcMain.handle('clients:update', async (_, id: string, data: any) => {
+        const prisma = getPrisma();
         try {
             const client = await prisma.client.update({
                 where: { id },
@@ -98,6 +101,7 @@ export function setupClientHandlers() {
 
     // Delete client
     ipcMain.handle('clients:delete', async (_, id: string) => {
+        const prisma = getPrisma();
         try {
             await prisma.client.delete({
                 where: { id },
