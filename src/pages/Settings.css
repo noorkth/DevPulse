@@ -144,6 +144,17 @@
     border-radius: var(--radius-md);
 }
 
+.developer-credit {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.developer-credit strong {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
 .about-info {
     display: flex;
     flex-direction: column;
