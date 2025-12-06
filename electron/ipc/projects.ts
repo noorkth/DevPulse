@@ -1,11 +1,12 @@
 import { ipcMain } from 'electron';
-import { PrismaClient } from '@prisma/client';
+import { getPrisma } from "../prisma";
 
-const prisma = new PrismaClient();
+// Using shared getPrisma()
 
 export function setupProjectHandlers() {
     // Get all projects with optional filters
     ipcMain.handle('projects:getAll', async (_, filters?: any) => {
+        const prisma = getPrisma();
         try {
             const where: any = {};
 
@@ -44,6 +45,7 @@ export function setupProjectHandlers() {
 
     // Get project by ID
     ipcMain.handle('projects:getById', async (_, id: string) => {
+        const prisma = getPrisma();
         try {
             const project = await prisma.project.findUnique({
                 where: { id },
@@ -72,6 +74,7 @@ export function setupProjectHandlers() {
 
     // Create new project
     ipcMain.handle('projects:create', async (_, data: any) => {
+        const prisma = getPrisma();
         try {
             const project = await prisma.project.create({
                 data: {
@@ -94,6 +97,7 @@ export function setupProjectHandlers() {
 
     // Update project
     ipcMain.handle('projects:update', async (_, id: string, data: any) => {
+        const prisma = getPrisma();
         try {
             const project = await prisma.project.update({
                 where: { id },
@@ -117,6 +121,7 @@ export function setupProjectHandlers() {
 
     // Delete/Archive project
     ipcMain.handle('projects:delete', async (_, id: string) => {
+        const prisma = getPrisma();
         try {
             // Soft delete by archiving
             const project = await prisma.project.update({
@@ -133,6 +138,7 @@ export function setupProjectHandlers() {
 
     // Get project statistics
     ipcMain.handle('projects:getStats', async (_, id: string) => {
+        const prisma = getPrisma();
         try {
             const project = await prisma.project.findUnique({
                 where: { id },

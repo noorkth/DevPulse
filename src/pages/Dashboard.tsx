@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Card from '../components/common/Card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { DashboardStats } from '../types';
+import Loading from '../components/common/Loading';
+import EmptyState from '../components/common/EmptyState';
 import './Dashboard.css';
 
 const SEVERITY_COLORS = {
@@ -44,16 +46,21 @@ const Dashboard: React.FC = () => {
     };
 
     if (loading) {
-        return (
-            <div className="dashboard-loading">
-                <div className="spinner-large"></div>
-                <p>Loading dashboard...</p>
-            </div>
-        );
+        return <Loading size="large" text="Loading dashboard data..." fullScreen />;
     }
 
-    if (!stats) {
-        return <div>No data available</div>;
+    if (!stats || stats.totalIssues === 0) {
+        return (
+            <EmptyState
+                icon="📊"
+                title="No data available yet"
+                description="Start tracking issues, developers, and projects to see your dashboard analytics."
+                action={{
+                    label: 'Refresh Dashboard',
+                    onClick: loadDashboardData
+                }}
+            />
+        );
     }
 
     const severityData = stats.severityDistribution.map(item => ({

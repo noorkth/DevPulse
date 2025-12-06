@@ -1,13 +1,12 @@
 import { ipcMain } from 'electron';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { getPrisma } from '../prisma';
 
 export function setupProductHandlers() {
     // Get all products
     ipcMain.handle('products:getAll', async () => {
         try {
-            const products = await prisma.product.findMany({
+            const prisma = getPrisma();
+            const products = await getPrisma().product.findMany({
                 include: {
                     _count: {
                         select: {
@@ -28,7 +27,7 @@ export function setupProductHandlers() {
     // Get product by ID with clients
     ipcMain.handle('products:getById', async (_, id: string) => {
         try {
-            const product = await prisma.product.findUnique({
+            const product = await getPrisma().product.findUnique({
                 where: { id },
                 include: {
                     clients: {
@@ -53,7 +52,7 @@ export function setupProductHandlers() {
     // Create new product
     ipcMain.handle('products:create', async (_, data: any) => {
         try {
-            const product = await prisma.product.create({
+            const product = await getPrisma().product.create({
                 data: {
                     name: data.name,
                     description: data.description,
@@ -70,7 +69,7 @@ export function setupProductHandlers() {
     // Update product
     ipcMain.handle('products:update', async (_, id: string, data: any) => {
         try {
-            const product = await prisma.product.update({
+            const product = await getPrisma().product.update({
                 where: { id },
                 data: {
                     name: data.name,
@@ -88,7 +87,7 @@ export function setupProductHandlers() {
     // Delete product
     ipcMain.handle('products:delete', async (_, id: string) => {
         try {
-            await prisma.product.delete({
+            await getPrisma().product.delete({
                 where: { id },
             });
 

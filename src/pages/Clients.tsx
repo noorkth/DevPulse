@@ -2,12 +2,16 @@ import React, { useState, useEffect } from 'react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
+import { Link } from 'react-router-dom';
+import Loading from '../components/common/Loading';
+import EmptyState from '../components/common/EmptyState';
 import Input from '../components/common/Input';
 import './Clients.css';
 
 const Clients: React.FC = () => {
     const [products, setProducts] = useState<any[]>([]);
     const [clients, setClients] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingClient, setEditingClient] = useState<any | null>(null);
     const [formData, setFormData] = useState({
@@ -22,6 +26,7 @@ const Clients: React.FC = () => {
 
     const loadData = async () => {
         try {
+            setLoading(true);
             const [productsData, clientsData] = await Promise.all([
                 window.api.products.getAll(),
                 window.api.clients.getAll(),
@@ -30,6 +35,8 @@ const Clients: React.FC = () => {
             setClients(clientsData);
         } catch (error) {
             console.error('Error loading data:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -110,24 +117,28 @@ const Clients: React.FC = () => {
                 <Button onClick={handleOpenModal}>+ New Client</Button>
             </div>
 
-            {products.length === 0 ? (
-                <Card>
-                    <div className="empty-state">
-                        <div className="empty-icon">📦</div>
-                        <h3>Create a product first</h3>
-                        <p>You need to create at least one product before adding clients</p>
-                        <Button onClick={() => window.location.hash = '#/products'}>Go to Products</Button>
-                    </div>
-                </Card>
+            {loading ? (
+                <Loading size="medium" text="Loading clients..." />
+            ) : products.length === 0 ? (
+                <EmptyState
+                    icon="📦"
+                    title="Create a product first"
+                    description="You need to create at least one product before adding clients"
+                    action={{
+                        label: 'Go to Products',
+                        onClick: () => window.location.hash = '#/products'
+                    }}
+                />
             ) : clients.length === 0 ? (
-                <Card>
-                    <div className="empty-state">
-                        <div className="empty-icon">👥</div>
-                        <h3>No clients yet</h3>
-                        <p>Create your first client to start tracking projects</p>
-                        <Button onClick={handleOpenModal}>Create Client</Button>
-                    </div>
-                </Card>
+                <EmptyState
+                    icon="👥"
+                    title="No clients yet"
+                    description="Create your first client to start tracking projects"
+                    action={{
+                        label: 'Create Client',
+                        onClick: handleOpenModal
+                    }}
+                />
             ) : (
                 <>
                     {clientsByProduct.map(({ product, clients: productClients }) => (
