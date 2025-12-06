@@ -94,9 +94,10 @@ export async function initializeDatabase(): Promise<void> {
             await prisma.$executeRawUnsafe(`
                 CREATE TABLE IF NOT EXISTS "Developer" (
                     "id" TEXT NOT NULL PRIMARY KEY,
-                    "name" TEXT NOT NULL,
+                    "fullName" TEXT NOT NULL,
                     "email" TEXT NOT NULL UNIQUE,
-                    "role" TEXT NOT NULL,
+                    "skills" TEXT NOT NULL,
+                    "seniorityLevel" TEXT NOT NULL,
                     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
@@ -146,11 +147,16 @@ export async function initializeDatabase(): Promise<void> {
             await prisma.$executeRawUnsafe(`
                 CREATE TABLE IF NOT EXISTS "AnalyticsCache" (
                     "id" TEXT NOT NULL PRIMARY KEY,
-                    "key" TEXT NOT NULL UNIQUE,
-                    "value" TEXT NOT NULL,
-                    "expiresAt" DATETIME NOT NULL,
-                    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    "developerId" TEXT,
+                    "projectId" TEXT,
+                    "productivityScore" REAL,
+                    "avgResolutionTime" REAL,
+                    "recurringBugCount" INTEGER,
+                    "totalIssuesResolved" INTEGER,
+                    "featureStabilityScore" REAL,
+                    "calculatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY ("developerId") REFERENCES "Developer"("id") ON DELETE CASCADE,
+                    FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE CASCADE
                 );
             `);
             console.log('✅ AnalyticsCache table created');
@@ -170,10 +176,25 @@ export async function initializeDatabase(): Promise<void> {
             console.log('✅ Junction tables created');
 
             // Create indexes
+            await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Product_name_idx" ON "Product"("name");`);
             await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Client_productId_idx" ON "Client"("productId");`);
+            await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Client_name_idx" ON "Client"("name");`);
             await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Project_clientId_idx" ON "Project"("clientId");`);
+            await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Project_status_idx" ON "Project"("status");`);
+            await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Developer_email_idx" ON "Developer"("email");`);
+            await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Developer_seniorityLevel_idx" ON "Developer"("seniorityLevel");`);
+            await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "DeveloperProject_developerId_idx" ON "DeveloperProject"("developerId");`);
+            await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "DeveloperProject_projectId_idx" ON "DeveloperProject"("projectId");`);
             await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Feature_projectId_idx" ON "Feature"("projectId");`);
+            await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Issue_projectId_idx" ON "Issue"("projectId");`);
+            await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Issue_assignedToId_idx" ON "Issue"("assignedToId");`);
             await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Issue_featureId_idx" ON "Issue"("featureId");`);
+            await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Issue_status_idx" ON "Issue"("status");`);
+            await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Issue_severity_idx" ON "Issue"("severity");`);
+            await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Issue_isRecurring_idx" ON "Issue"("isRecurring");`);
+            await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "AnalyticsCache_developerId_idx" ON "AnalyticsCache"("developerId");`);
+            await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "AnalyticsCache_projectId_idx" ON "AnalyticsCache"("projectId");`);
+            await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "AnalyticsCache_calculatedAt_idx" ON "AnalyticsCache"("calculatedAt");`);
             console.log('✅ Indexes created');
 
             await prisma.$disconnect();
