@@ -446,23 +446,46 @@ export function setupDataHandlers() {
                 defaultId: 0,
                 title: 'Clear Cache',
                 message: 'Are you sure you want to clear the application cache?',
-                detail: 'This will clear temporary files and restart the application.'
+                detail: 'This will clear HTTP cache and temporary files. You should restart the application after clearing.'
             });
 
             if (choice.response === 0) {
                 return { success: false, message: 'Cache clear canceled' };
             }
 
-            // Clear session cache
-            const { session } = require('electron');
+            console.log('🧹 Clearing cache...');
+
+            // Get BrowserWindow to show dialog
+            const { session, BrowserWindow, app } = require('electron');
+
+            // Only clear HTTP cache and service workers (safe for production)
             await session.defaultSession.clearCache();
-            await session.defaultSession.clearStorageData();
+            await session.defaultSession.clearStorageData({
+                storages: ['serviceworkers', 'cachestorage']
+            });
 
             console.log('✅ Cache cleared');
 
+            // Show restart dialog
+            const restartChoice = await dialog.showMessageBox({
+                type: 'info',
+                buttons: ['Restart Now', 'Restart Later'],
+                defaultId: 0,
+                title: 'Cache Cleared',
+                message: 'Cache cleared successfully!',
+                detail: 'Please restart the application for changes to take full effect.\n\nRestart now?'
+            });
+
+            if (restartChoice.response === 0) {
+                // User chose to restart now
+                app.relaunch();
+                app.quit();
+            }
+
             return {
                 success: true,
-                message: 'Cache cleared successfully! The application will now restart.'
+                message: 'Cache cleared successfully! Please restart the application.',
+                needsRestart: true
             };
 
         } catch (error) {

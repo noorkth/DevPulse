@@ -89,22 +89,24 @@ const Settings: React.FC = () => {
     const handleClearCache = async () => {
         if (isProcessing) return;
 
+        setIsProcessing(true);
         try {
-            setIsProcessing(true);
             console.log('🧹 Clearing cache...');
-
             const result = await (window.api as any).data.clearCache();
 
             if (result.success) {
-                alert(`✅ ${result.message}`);
-                // Optionally restart the app
-                window.location.reload();
-            } else if (result.message !== 'Cache clear canceled') {
-                alert(`❌ ${result.message}`);
+                // Backend handles restart dialog, just show message
+                if (!result.needsRestart) {
+                    // User chose to restart later
+                    alert(result.message);
+                }
+                // If user chose restart now, app will close automatically
+            } else {
+                alert(result.message || 'Failed to clear cache');
             }
         } catch (error) {
             console.error('Clear cache error:', error);
-            alert('❌ Failed to clear cache: ' + (error as Error).message);
+            alert('Failed to clear cache: ' + (error instanceof Error ? error.message : 'Unknown error'));
         } finally {
             setIsProcessing(false);
         }
