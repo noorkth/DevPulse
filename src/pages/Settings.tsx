@@ -6,6 +6,7 @@ import './Settings.css';
 const Settings: React.FC = () => {
     const [theme, setTheme] = useState<'light' | 'dark'>('dark');
     const [appVersion, setAppVersion] = useState<string>('Loading...');
+    const [isProcessing, setIsProcessing] = useState(false);
 
     useEffect(() => {
         loadSettings();
@@ -36,6 +37,76 @@ const Settings: React.FC = () => {
             document.documentElement.setAttribute('data-theme', newTheme);
         } catch (error) {
             console.error('Error changing theme:', error);
+        }
+    };
+
+    const handleExportData = async () => {
+        if (isProcessing) return;
+
+        try {
+            setIsProcessing(true);
+            console.log('📦 Exporting data...');
+
+            const result = await (window.api as any).data.export();
+
+            if (result.success) {
+                alert(`✅ ${result.message}`);
+            } else {
+                alert(`❌ ${result.message}`);
+            }
+        } catch (error) {
+            console.error('Export error:', error);
+            alert('❌ Export failed: ' + (error as Error).message);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleImportData = async () => {
+        if (isProcessing) return;
+
+        try {
+            setIsProcessing(true);
+            console.log('📥 Importing data...');
+
+            const result = await (window.api as any).data.import();
+
+            if (result.success) {
+                alert(`✅ ${result.message}\n\nThe application will refresh to show the imported data.`);
+                // Refresh the page to show imported data
+                window.location.reload();
+            } else if (result.message !== 'Import canceled') {
+                alert(`❌ ${result.message}`);
+            }
+        } catch (error) {
+            console.error('Import error:', error);
+            alert('❌ Import failed: ' + (error as Error).message);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleClearCache = async () => {
+        if (isProcessing) return;
+
+        try {
+            setIsProcessing(true);
+            console.log('🧹 Clearing cache...');
+
+            const result = await (window.api as any).data.clearCache();
+
+            if (result.success) {
+                alert(`✅ ${result.message}`);
+                // Optionally restart the app
+                window.location.reload();
+            } else if (result.message !== 'Cache clear canceled') {
+                alert(`❌ ${result.message}`);
+            }
+        } catch (error) {
+            console.error('Clear cache error:', error);
+            alert('❌ Failed to clear cache: ' + (error as Error).message);
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -82,15 +153,33 @@ const Settings: React.FC = () => {
                         <div className="setting-info">
                             <label className="setting-label">Database Location</label>
                             <p className="setting-description">
-                                <code className="code-text">./prisma/devpulse.db</code>
+                                <code className="code-text">~/Library/Application Support/devpulse/devpulse.db</code>
                             </p>
                         </div>
                     </div>
 
                     <div className="setting-actions">
-                        <Button variant="secondary">Export Data</Button>
-                        <Button variant="secondary">Import Data</Button>
-                        <Button variant="danger">Clear Cache</Button>
+                        <Button
+                            variant="secondary"
+                            onClick={handleExportData}
+                            disabled={isProcessing}
+                        >
+                            {isProcessing ? '⏳ Exporting...' : '📦 Export Data'}
+                        </Button>
+                        <Button
+                            variant="secondary"
+                            onClick={handleImportData}
+                            disabled={isProcessing}
+                        >
+                            {isProcessing ? '⏳ Importing...' : '📥 Import Data'}
+                        </Button>
+                        <Button
+                            variant="danger"
+                            onClick={handleClearCache}
+                            disabled={isProcessing}
+                        >
+                            {isProcessing ? '⏳ Clearing...' : '🧹 Clear Cache'}
+                        </Button>
                     </div>
                 </div>
             </Card>

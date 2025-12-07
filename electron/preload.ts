@@ -77,11 +77,19 @@ const api = {
     },
 
     // Export
+    // Export old - can be deprecated
     export: {
         toCSV: (data: any, filename: string) =>
             ipcRenderer.invoke('export:toCSV', data, filename),
         toPDF: (data: any, filename: string) =>
             ipcRenderer.invoke('export:toPDF', data, filename),
+    },
+
+    // Data Management (new)
+    data: {
+        export: () => ipcRenderer.invoke('data:export'),
+        import: () => ipcRenderer.invoke('data:import'),
+        clearCache: () => ipcRenderer.invoke('data:clearCache'),
     },
 
     // App

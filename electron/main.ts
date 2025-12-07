@@ -7,6 +7,7 @@ import { setupProjectHandlers } from './ipc/projects';
 import { setupDeveloperHandlers } from './ipc/developers';
 import { setupIssueHandlers } from './ipc/issues';
 import { setupAnalyticsHandlers } from './ipc/analytics';
+import { setupDataHandlers } from './ipc/data';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,19 +36,32 @@ const createWindow = () => {
         }
     });
 
-    // ✅ Set Content Security Policy headers
+    // ✅ Set Content Security Policy headers (relaxed for development)
     mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+        const isDev = process.env.NODE_ENV === 'development' || process.env.VITE_DEV_SERVER_URL;
+
+        // Relaxed CSP for development (Vite needs unsafe-eval and localhost)
+        const devCSP =
+            "default-src 'self'; " +
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* ws://localhost:*; " +
+            "style-src 'self' 'unsafe-inline'; " +
+            "img-src 'self' data: blob:; " +
+            "font-src 'self' data:; " +
+            "connect-src 'self' http://localhost:* ws://localhost:*";
+
+        // Strict CSP for production
+        const prodCSP =
+            "default-src 'self'; " +
+            "script-src 'self'; " +
+            "style-src 'self' 'unsafe-inline'; " +
+            "img-src 'self' data:; " +
+            "font-src 'self'; " +
+            "connect-src 'self'";
+
         callback({
             responseHeaders: {
                 ...details.responseHeaders,
-                'Content-Security-Policy': [
-                    "default-src 'self'; " +
-                    "script-src 'self'; " +
-                    "style-src 'self' 'unsafe-inline'; " +
-                    "img-src 'self' data:; " +
-                    "font-src 'self'; " +
-                    "connect-src 'self'"
-                ]
+                'Content-Security-Policy': [isDev ? devCSP : prodCSP]
             }
         });
     });
@@ -108,6 +122,7 @@ app.whenReady().then(async () => {
     setupDeveloperHandlers();
     setupIssueHandlers();
     setupAnalyticsHandlers();
+    setupDataHandlers();
 
     // Theme handlers
     ipcMain.handle('theme:get', () => {

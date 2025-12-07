@@ -1,6 +1,6 @@
 {
   "name": "devpulse",
-  "version": "1.0.31",
+  "version": "1.0.32",
   "description": "Developer Productivity & Issue Intelligence Desktop App",
   "main": "dist-electron/main.js",
   "scripts": {
@@ -28,6 +28,7 @@
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "^5.7.1",
+    "adm-zip": "^0.5.16",
     "date-fns": "^3.0.6",
     "electron-store": "^8.1.0",
     "react": "^18.2.0",
@@ -37,6 +38,7 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.5.7",
     "@types/node": "^20.10.6",
     "@types/react": "^18.2.46",
     "@types/react-dom": "^18.2.18",
