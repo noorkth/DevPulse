@@ -29,18 +29,43 @@ const createWindow = () => {
             preload: preloadPath,
             contextIsolation: true,
             nodeIntegration: false,
-            sandbox: false
+            sandbox: true,  // ✅ Enable sandbox for better security
+            webSecurity: true,  // ✅ Ensure web security
+            allowRunningInsecureContent: false  // ✅ Block insecure content
         }
+    });
+
+    // ✅ Set Content Security Policy headers
+    mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+        callback({
+            responseHeaders: {
+                ...details.responseHeaders,
+                'Content-Security-Policy': [
+                    "default-src 'self'; " +
+                    "script-src 'self'; " +
+                    "style-src 'self' 'unsafe-inline'; " +
+                    "img-src 'self' data:; " +
+                    "font-src 'self'; " +
+                    "connect-src 'self'"
+                ]
+            }
+        });
     });
 
     // Load app
     const devServerURL = process.env.VITE_DEV_SERVER_URL;
+    const isDev = process.env.NODE_ENV === 'development';
     console.log('🔍 VITE_DEV_SERVER_URL:', devServerURL);
+    console.log('🔍 Environment:', isDev ? 'development' : 'production');
 
     if (devServerURL) {
         console.log('🌐 Loading from dev server:', devServerURL);
         mainWindow.loadURL(devServerURL);
-        mainWindow.webContents.openDevTools();
+
+        // ✅ Only open DevTools in development
+        if (isDev) {
+            mainWindow.webContents.openDevTools();
+        }
     } else {
         console.log('📁 Loading from dist folder');
         mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));

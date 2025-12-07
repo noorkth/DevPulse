@@ -66,21 +66,11 @@ export function setupProjectHandlers() {
     });
 
     // Get project by ID
-    ipcMain.handle('projects:getById', async (event, id: string) => {
-        const senderId = event.sender.id.toString();
-
-        // Rate limit check
-        if (!readLimiter.isAllowed(senderId)) {
-            throw new RateLimitError('Too many requests. Please slow down.');
-        }
-
+    ipcMain.handle('projects:getById', async (_, id: string) => {
         const prisma = getPrisma();
         try {
-            // Validate ID
-            const validatedId = validate(UUIDSchema, id);
-
             const project = await prisma.project.findUnique({
-                where: { id: validatedId },
+                where: { id },
                 include: {
                     issues: {
                         include: {
@@ -105,28 +95,18 @@ export function setupProjectHandlers() {
     });
 
     // Create new project
-    ipcMain.handle('projects:create', async (event, data: any) => {
-        const senderId = event.sender.id.toString();
-
-        // Rate limit check
-        if (!writeLimiter.isAllowed(senderId)) {
-            throw new RateLimitError('Too many requests. Please slow down.');
-        }
-
+    ipcMain.handle('projects:create', async (_, data: any) => {
         const prisma = getPrisma();
         try {
-            // Validate input data
-            const validatedData = validate(ProjectCreateSchema, data);
-
             const project = await prisma.project.create({
                 data: {
-                    name: validatedData.name,
-                    clientId: validatedData.clientId,
-                    projectType: validatedData.projectType,
-                    description: validatedData.description,
-                    startDate: new Date(validatedData.startDate),
-                    endDate: validatedData.endDate ? new Date(validatedData.endDate) : null,
-                    status: validatedData.status,
+                    name: data.name,
+                    clientId: data.clientId,
+                    projectType: data.projectType,
+                    description: data.description,
+                    startDate: new Date(data.startDate),
+                    endDate: data.endDate ? new Date(data.endDate) : null,
+                    status: data.status || 'active',
                 },
             });
 
@@ -138,30 +118,19 @@ export function setupProjectHandlers() {
     });
 
     // Update project
-    ipcMain.handle('projects:update', async (event, id: string, data: any) => {
-        const senderId = event.sender.id.toString();
-
-        // Rate limit check
-        if (!writeLimiter.isAllowed(senderId)) {
-            throw new RateLimitError('Too many requests. Please slow down.');
-        }
-
+    ipcMain.handle('projects:update', async (_, id: string, data: any) => {
         const prisma = getPrisma();
         try {
-            // Validate ID and data
-            const validatedId = validate(UUIDSchema, id);
-            const validatedData = validate(ProjectUpdateSchema, data);
-
             const project = await prisma.project.update({
-                where: { id: validatedId },
+                where: { id },
                 data: {
-                    name: validatedData.name,
-                    clientId: validatedData.clientId,
-                    projectType: validatedData.projectType,
-                    description: validatedData.description,
-                    startDate: validatedData.startDate ? new Date(validatedData.startDate) : undefined,
-                    endDate: validatedData.endDate ? new Date(validatedData.endDate) : null,
-                    status: validatedData.status,
+                    name: data.name,
+                    clientId: data.clientId,
+                    projectType: data.projectType,
+                    description: data.description,
+                    startDate: data.startDate ? new Date(data.startDate) : undefined,
+                    endDate: data.endDate ? new Date(data.endDate) : null,
+                    status: data.status,
                 },
             });
 
@@ -173,22 +142,12 @@ export function setupProjectHandlers() {
     });
 
     // Delete/Archive project
-    ipcMain.handle('projects:delete', async (event, id: string) => {
-        const senderId = event.sender.id.toString();
-
-        // Rate limit check
-        if (!writeLimiter.isAllowed(senderId)) {
-            throw new RateLimitError('Too many requests. Please slow down.');
-        }
-
+    ipcMain.handle('projects:delete', async (_, id: string) => {
         const prisma = getPrisma();
         try {
-            // Validate ID
-            const validatedId = validate(UUIDSchema, id);
-
             // Soft delete by archiving
             const project = await prisma.project.update({
-                where: { id: validatedId },
+                where: { id },
                 data: { status: 'archived' },
             });
 
@@ -200,21 +159,11 @@ export function setupProjectHandlers() {
     });
 
     // Get project statistics
-    ipcMain.handle('projects:getStats', async (event, id: string) => {
-        const senderId = event.sender.id.toString();
-
-        // Rate limit check
-        if (!readLimiter.isAllowed(senderId)) {
-            throw new RateLimitError('Too many requests. Please slow down.');
-        }
-
+    ipcMain.handle('projects:getStats', async (_, id: string) => {
         const prisma = getPrisma();
         try {
-            // Validate ID
-            const validatedId = validate(UUIDSchema, id);
-
             const project = await prisma.project.findUnique({
-                where: { id: validatedId },
+                where: { id },
                 include: {
                     issues: true,
                     developers: true,

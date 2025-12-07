@@ -1,11 +1,7 @@
 import { ipcMain } from 'electron';
 import { getPrisma } from "../prisma";
-import { validate } from '../validation/validator';
-import { DeveloperCreateSchema, DeveloperUpdateSchema, UUIDSchema } from '../validation/schemas';
-import { RateLimiter, RateLimitError, RateLimiterPresets } from '../security/rate-limiter';
 
-const readLimiter = new RateLimiter(RateLimiterPresets.READ.maxRequests, RateLimiterPresets.READ.windowMs);
-const writeLimiter = new RateLimiter(RateLimiterPresets.WRITE.maxRequests, RateLimiterPresets.WRITE.windowMs);
+// Using shared getPrisma()
 
 export function setupDeveloperHandlers() {
     // Get all developers

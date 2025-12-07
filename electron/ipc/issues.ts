@@ -1,21 +1,38 @@
 import { ipcMain } from 'electron';
 import { getPrisma } from "../prisma";
 import { differenceInHours } from 'date-fns';
+import { validate } from '../validation/validator';
+import {
+    IssueCreateSchema,
+    IssueUpdateSchema,
+    IssueFilterSchema,
+    UUIDSchema
+} from '../validation/schemas';
+import { RateLimiter, RateLimitError, RateLimiterPresets } from '../security/rate-limiter';
 
-// Using shared getPrisma()
+// Rate limiters for different operation types
+const readLimiter = new RateLimiter(RateLimiterPresets.READ.maxRequests, RateLimiterPresets.READ.windowMs);
+const writeLimiter = new RateLimiter(RateLimiterPresets.WRITE.maxRequests, RateLimiterPresets.WRITE.windowMs);
 
 export function setupIssueHandlers() {
     // Get all issues with filters
-    ipcMain.handle('issues:getAll', async (_, filters?: any) => {
+    ipcMain.handle('issues:getAll', async (event, filters?: any) => {
+        const senderId = event.sender.id.toString();
+
+        if (!readLimiter.isAllowed(senderId)) {
+            throw new RateLimitError('Too many requests. Please slow down.');
+        }
+
         const prisma = getPrisma();
         try {
+            const validatedFilters = validate(IssueFilterSchema, filters);
             const where: any = {};
 
-            if (filters?.projectId) where.projectId = filters.projectId;
-            if (filters?.assignedToId) where.assignedToId = filters.assignedToId;
-            if (filters?.status) where.status = filters.status;
-            if (filters?.severity) where.severity = filters.severity;
-            if (filters?.isRecurring !== undefined) where.isRecurring = filters.isRecurring;
+            if (validatedFilters?.projectId) where.projectId = validatedFilters.projectId;
+            if (validatedFilters?.assignedToId) where.assignedToId = validatedFilters.assignedToId;
+            if (validatedFilters?.status) where.status = validatedFilters.status;
+            if (validatedFilters?.severity) where.severity = validatedFilters.severity;
+            if (validatedFilters?.isRecurring !== undefined) where.isRecurring = validatedFilters.isRecurring;
 
             const issues = await prisma.issue.findMany({
                 where,
@@ -36,11 +53,18 @@ export function setupIssueHandlers() {
     });
 
     // Get issue by ID
-    ipcMain.handle('issues:getById', async (_, id: string) => {
+    ipcMain.handle('issues:getById', async (event, id: string) => {
+        const senderId = event.sender.id.toString();
+
+        if (!readLimiter.isAllowed(senderId)) {
+            throw new RateLimitError('Too many requests. Please slow down.');
+        }
+
         const prisma = getPrisma();
         try {
+            const validatedId = validate(UUIDSchema, id);
             const issue = await prisma.issue.findUnique({
-                where: { id },
+                where: { id: validatedId },
                 include: {
                     project: true,
                     assignedTo: true,
@@ -58,20 +82,27 @@ export function setupIssueHandlers() {
     });
 
     // Create new issue
-    ipcMain.handle('issues:create', async (_, data: any) => {
+    ipcMain.handle('issues:create', async (event, data: any) => {
+        const senderId = event.sender.id.toString();
+
+        if (!writeLimiter.isAllowed(senderId)) {
+            throw new RateLimitError('Too many requests. Please slow down.');
+        }
+
         const prisma = getPrisma();
         try {
+            const validatedData = validate(IssueCreateSchema, data);
             const issue = await prisma.issue.create({
                 data: {
-                    title: data.title,
-                    description: data.description,
-                    severity: data.severity,
-                    status: data.status || 'open',
-                    projectId: data.projectId,
-                    featureId: data.featureId || null,
-                    assignedToId: data.assignedToId || null,
-                    notes: data.notes || null,
-                    attachments: data.attachments ? JSON.stringify(data.attachments) : null,
+                    title: validatedData.title,
+                    description: validatedData.description,
+                    severity: validatedData.severity,
+                    status: validatedData.status,
+                    projectId: validatedData.projectId,
+                    featureId: validatedData.featureId || null,
+                    assignedToId: validatedData.assignedToId || null,
+                    notes: validatedData.notes || null,
+                    attachments: validatedData.attachments ? JSON.stringify(validatedData.attachments) : null,
                 },
                 include: {
                     project: true,
@@ -88,20 +119,28 @@ export function setupIssueHandlers() {
     });
 
     // Update issue
-    ipcMain.handle('issues:update', async (_, id: string, data: any) => {
+    ipcMain.handle('issues:update', async (event, id: string, data: any) => {
+        const senderId = event.sender.id.toString();
+
+        if (!writeLimiter.isAllowed(senderId)) {
+            throw new RateLimitError('Too many requests. Please slow down.');
+        }
+
         const prisma = getPrisma();
         try {
+            const validatedId = validate(UUIDSchema, id);
+            const validatedData = validate(IssueUpdateSchema, data);
             const issue = await prisma.issue.update({
-                where: { id },
+                where: { id: validatedId },
                 data: {
-                    title: data.title,
-                    description: data.description,
-                    severity: data.severity,
-                    status: data.status,
-                    featureId: data.featureId,
-                    assignedToId: data.assignedToId,
-                    notes: data.notes,
-                    attachments: data.attachments ? JSON.stringify(data.attachments) : undefined,
+                    title: validatedData.title,
+                    description: validatedData.description,
+                    severity: validatedData.severity,
+                    status: validatedData.status,
+                    featureId: validatedData.featureId,
+                    assignedToId: validatedData.assignedToId,
+                    notes: validatedData.notes,
+                    attachments: validatedData.attachments ? JSON.stringify(validatedData.attachments) : undefined,
                 },
                 include: {
                     project: true,
@@ -118,11 +157,18 @@ export function setupIssueHandlers() {
     });
 
     // Resolve issue
-    ipcMain.handle('issues:resolve', async (_, id: string, fixQuality: number) => {
+    ipcMain.handle('issues:resolve', async (event, id: string, fixQuality: number) => {
+        const senderId = event.sender.id.toString();
+
+        if (!writeLimiter.isAllowed(senderId)) {
+            throw new RateLimitError('Too many requests. Please slow down.');
+        }
+
         const prisma = getPrisma();
         try {
+            const validatedId = validate(UUIDSchema, id);
             const issue = await prisma.issue.findUnique({
-                where: { id },
+                where: { id: validatedId },
             });
 
             if (!issue) {
@@ -155,11 +201,18 @@ export function setupIssueHandlers() {
     });
 
     // Detect recurrence
-    ipcMain.handle('issues:detectRecurrence', async (_, issueId: string) => {
+    ipcMain.handle('issues:detectRecurrence', async (event, issueId: string) => {
+        const senderId = event.sender.id.toString();
+
+        if (!readLimiter.isAllowed(senderId)) {
+            throw new RateLimitError('Too many requests. Please slow down.');
+        }
+
         const prisma = getPrisma();
         try {
+            const validatedId = validate(UUIDSchema, issueId);
             const issue = await prisma.issue.findUnique({
-                where: { id: issueId },
+                where: { id: validatedId },
             });
 
             if (!issue) {

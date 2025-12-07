@@ -1,11 +1,5 @@
 import { ipcMain } from 'electron';
 import { getPrisma } from '../prisma';
-import { validate } from '../validation/validator';
-import { ClientCreateSchema, ClientUpdateSchema, ClientFilterSchema, UUIDSchema } from '../validation/schemas';
-import { RateLimiter, RateLimitError, RateLimiterPresets } from '../security/rate-limiter';
-
-const readLimiter = new RateLimiter(RateLimiterPresets.READ.maxRequests, RateLimiterPresets.READ.windowMs);
-const writeLimiter = new RateLimiter(RateLimiterPresets.WRITE.maxRequests, RateLimiterPresets.WRITE.windowMs);
 
 export function setupClientHandlers() {
     // Get all clients

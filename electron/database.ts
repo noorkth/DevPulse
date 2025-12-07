@@ -1,3 +1,15 @@
+/**
+ * SECURITY NOTE:
+ * This file uses $executeRawUnsafe for database initialization.
+ * This is SAFE because:
+ * 1. Only static SQL queries (no user input)
+ * 2. Only runs during first-time database creation
+ * 3. All user input is validated at IPC boundaries before database operations
+ * 
+ * DO NOT add user input to these queries!
+ * Use Prisma's type-safe query builder for all runtime queries.
+ */
+
 import { app } from 'electron';
 import path from 'path';
 import fs from 'fs';
@@ -11,10 +23,12 @@ export function getUserDataPath(): string {
 // Get database file path
 export function getDatabasePath(): string {
     const userDataPath = getUserDataPath();
-    // Ensure directory exists
+
+    // ✅ Security: Ensure directory exists with proper permissions (700 = owner only)
     if (!fs.existsSync(userDataPath)) {
-        fs.mkdirSync(userDataPath, { recursive: true });
+        fs.mkdirSync(userDataPath, { recursive: true, mode: 0o700 });
     }
+
     return path.join(userDataPath, 'devpulse.db');
 }
 
