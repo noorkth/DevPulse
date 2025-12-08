@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
@@ -13,6 +14,7 @@ const severityColors = {
 };
 
 const Issues: React.FC = () => {
+    const location = useLocation();
     const [issues, setIssues] = useState<any[]>([]);
     const [projects, setProjects] = useState<any[]>([]);
     const [developers, setDevelopers] = useState<any[]>([]);

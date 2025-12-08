@@ -7,11 +7,11 @@ const LOGO_BASE64 = 'data:image/png;base64,/9j/4AAQSkZJRgABAQABLAEsAAD/4QCARXhpZ
 
 const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '📊' },
+    { path: '/developers', label: 'Users', icon: '👥' },
     { path: '/products', label: 'Products', icon: '📦' },
-    { path: '/clients', label: 'Clients', icon: '👥' },
+    { path: '/clients', label: 'Clients', icon: '🏢' },
     { path: '/projects', label: 'Projects', icon: '🗂️' },
     { path: '/issues', label: 'Issues', icon: '🐛' },
-    { path: '/developers', label: 'Developers', icon: '👨‍💻' },
     { path: '/analytics', label: 'Analytics', icon: '📈' },
     { path: '/performance', label: 'Performance', icon: '⚡' },
     { path: '/ml-insights', label: 'ML Insights', icon: '🤖' },

@@ -1,6 +1,7 @@
 import React from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import QuickCreateIssue from '../common/QuickCreateIssue';
 import './Layout.css';
 
 interface LayoutProps {
@@ -21,6 +22,9 @@ const Layout: React.FC<LayoutProps> = ({ children, theme, onToggleTheme }) => {
                     {children}
                 </main>
             </div>
+
+            {/* Global Quick Create Issue Button */}
+            <QuickCreateIssue />
         </div>
     );
 };

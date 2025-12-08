@@ -57,7 +57,9 @@ export function setupAnalyticsHandlers() {
     ipcMain.handle('analytics:getProductivityRankings', async (_, timeframe?: any) => {
         const prisma = getPrisma();
         try {
+            // Only include developers, not managers
             const developers = await prisma.developer.findMany({
+                where: { role: 'developer' },
                 include: {
                     issues: {
                         where: timeframe?.startDate ? {
