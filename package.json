@@ -1,7 +1,7 @@
 {
   "name": "devpulse",
-  "version": "2.0.1",
-  "description": "Developer Productivity & Issue Intelligence Desktop App",
+  "version": "3.0.1",
+  "description": "Developer Productivity & Issue Intelligence Desktop App with AI-Powered Analytics",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
@@ -35,6 +35,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.21.1",
     "recharts": "^2.15.4",
+    "simple-statistics": "^7.8.8",
     "zod": "^4.1.13"
   },
   "devDependencies": {

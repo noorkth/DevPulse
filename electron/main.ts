@@ -8,6 +8,7 @@ import { setupDeveloperHandlers } from './ipc/developers';
 import { setupIssueHandlers } from './ipc/issues';
 import { setupAnalyticsHandlers } from './ipc/analytics';
 import { setupDataHandlers } from './ipc/data';
+import { setupMLHandlers } from './ipc/ml';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -123,6 +124,7 @@ app.whenReady().then(async () => {
     setupIssueHandlers();
     setupAnalyticsHandlers();
     setupDataHandlers();
+    setupMLHandlers();
 
     // Theme handlers
     ipcMain.handle('theme:get', () => {

@@ -15,6 +15,7 @@ const Projects: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProject, setEditingProject] = useState<any | null>(null);
     const [selectedProduct, setSelectedProduct] = useState<string>('');
+    const [isOngoing, setIsOngoing] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         clientId: '',
@@ -55,10 +56,17 @@ const Projects: React.FC = () => {
                 return;
             }
 
+            // Prepare data with proper formatting
+            const submitData = {
+                ...formData,
+                startDate: new Date(formData.startDate).toISOString(),
+                endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
+            };
+
             if (editingProject) {
-                await window.api.projects.update(editingProject.id, formData);
+                await window.api.projects.update(editingProject.id, submitData);
             } else {
-                await window.api.projects.create(formData);
+                await window.api.projects.create(submitData);
             }
 
             setIsModalOpen(false);
@@ -73,13 +81,22 @@ const Projects: React.FC = () => {
     const handleEdit = (project: any) => {
         setEditingProject(project);
         setSelectedProduct(project.client.productId);
+        setIsOngoing(!project.endDate);
+
+        // Helper to format date for input (YYYY-MM-DD)
+        const formatDateForInput = (dateValue: any) => {
+            if (!dateValue) return '';
+            const date = typeof dateValue === 'string' ? dateValue : dateValue.toISOString();
+            return date.split('T')[0];
+        };
+
         setFormData({
             name: project.name,
             clientId: project.clientId,
             projectType: project.projectType,
             description: project.description || '',
-            startDate: project.startDate.split('T')[0],
-            endDate: project.endDate ? project.endDate.split('T')[0] : '',
+            startDate: formatDateForInput(project.startDate),
+            endDate: formatDateForInput(project.endDate),
             status: project.status,
         });
         setIsModalOpen(true);
@@ -99,6 +116,7 @@ const Projects: React.FC = () => {
     const resetForm = () => {
         setEditingProject(null);
         setSelectedProduct('');
+        setIsOngoing(false);
         setFormData({
             name: '',
             clientId: '',
@@ -280,13 +298,24 @@ const Projects: React.FC = () => {
                         </select>
                     </div>
 
-                    <Input
-                        label="Project Type"
-                        value={formData.projectType}
-                        onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
-                        placeholder="e.g., Web Application, Mobile App"
-                        required
-                    />
+                    <div className="form-group">
+                        <label className="input-label">Project Type *</label>
+                        <select
+                            className="input"
+                            value={formData.projectType}
+                            onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
+                            required
+                        >
+                            <option value="">Select type...</option>
+                            <option value="web">Web Application</option>
+                            <option value="mobile">Mobile App</option>
+                            <option value="desktop">Desktop App</option>
+                            <option value="api">API/Backend</option>
+                            <option value="aosp_stb">AOSP STB</option>
+                            <option value="catv_stb">CATV STB</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
 
                     <Input
                         label="Description"
@@ -310,7 +339,24 @@ const Projects: React.FC = () => {
                             type="date"
                             value={formData.endDate}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                            disabled={isOngoing}
                         />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="checkbox-label">
+                            <input
+                                type="checkbox"
+                                checked={isOngoing}
+                                onChange={(e) => {
+                                    setIsOngoing(e.target.checked);
+                                    if (e.target.checked) {
+                                        setFormData({ ...formData, endDate: '' });
+                                    }
+                                }}
+                            />
+                            <span>🔄 Ongoing Project (No end date)</span>
+                        </label>
                     </div>
 
                     <div className="form-group">

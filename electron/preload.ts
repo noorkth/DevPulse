@@ -70,6 +70,16 @@ const api = {
             ipcRenderer.invoke('analytics:getProjectComparison'),
     },
 
+    // ML / Predictive Analytics
+    ml: {
+        predictResolutionTime: (issueData: any) =>
+            ipcRenderer.invoke('ml:predictResolutionTime', issueData),
+        detectHotspots: () =>
+            ipcRenderer.invoke('ml:detectHotspots'),
+        recommendDeveloper: (issueData: any) =>
+            ipcRenderer.invoke('ml:recommendDeveloper', issueData),
+    },
+
     // Theme
     theme: {
         get: () => ipcRenderer.invoke('theme:get'),

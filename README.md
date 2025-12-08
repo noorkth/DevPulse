@@ -15,21 +15,40 @@ A powerful Electron-based desktop application for tracking developer productivit
 - Organize work by product lines, client accounts, and individual projects
 - Perfect for agencies, consultancies, and multi-product companies
 
+### Role-Based User Management 🆕
+- **Developers** - Can be assigned issues, tracked for productivity
+- **Project Managers** - Cannot be assigned issues, focus on oversight
+- Role selection during user creation
+- Separate visual sections for each role type
+- Smart filtering prevents managers from appearing in assignment dropdowns
+
 ### Developer Productivity Tracking
 - Track individual and team productivity scores
 - Skills-based developer profiles
-- Seniority level management
+- Seniority level management (Junior → Principal)
 - Workload distribution insights
+- Fix quality ratings (1-5 stars)
 
-### Issue Intelligence
-- Bug tracking with severity levels
+### Advanced Issue Management 🆕
+- Bug tracking with severity levels (Critical, High, Medium, Low)
+- **Multi-dimensional filtering:**
+  - By severity, status, developer, project, or client
+  - Live result counts
+  - Quick filter reset
+- Skill-based issue assignment
 - Recurrence detection for chronic issues
 - Time-to-fix analytics
-- Fix quality ratings
 - Feature stability monitoring
+
+### User Search & Discovery 🆕
+- Real-time search across users
+- Search by name, email, or seniority
+- Instant filtered results
+- Works with role-based sections
 
 ### Advanced Analytics
 - Dashboard with key metrics
+- ML-powered bug hotspot detection
 - Productivity rankings
 - Issue trend analysis
 - Project health comparison
@@ -37,7 +56,7 @@ A powerful Electron-based desktop application for tracking developer productivit
 
 ### Modern UI
 - Clean, professional macOS-native design
-- Dark/Light theme support
+- Dark/Light theme support (fully compatible)
 - Responsive layouts
 - Real-time updates
 
@@ -129,9 +148,11 @@ The database starts **completely empty** with no sample data. Build your organiz
 - **Products** - Manage product lines
 - **Clients** - Manage client accounts  
 - **Projects** - Create and track projects
-- **Issues** - Bug tracking and analysis
-- **Developers** - Team management
+- **Issues** - Bug tracking with advanced filtering
+- **Users** - Team management (Developers & Project Managers)
 - **Analytics** - Deep dive into productivity & quality
+- **Performance** - Developer performance metrics
+- **ML Insights** - AI-powered bug hotspot detection
 - **Settings** - App configuration
 
 ---
@@ -147,6 +168,9 @@ npm run build
 
 # Build macOS app
 npm run build:mac
+
+# Testing
+npx tsx scripts/integration-test.ts  # Run 29 integration tests
 
 # Database commands
 npm run db:migrate    # Run migrations

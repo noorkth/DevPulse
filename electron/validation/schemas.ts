@@ -36,7 +36,7 @@ export const ClientFilterSchema = z.object({
 export const ProjectCreateSchema = z.object({
     name: z.string().min(1, 'Project name is required').max(255, 'Project name too long'),
     clientId: z.string().uuid('Invalid client ID'),
-    projectType: z.enum(['web', 'mobile', 'desktop', 'api', 'other']),
+    projectType: z.enum(['web', 'mobile', 'desktop', 'api', 'aosp_stb', 'catv_stb', 'other']),
     description: z.string().max(5000, 'Description too long').optional(),
     startDate: z.string().datetime('Invalid start date format'),
     endDate: z.string().datetime('Invalid end date format').optional().nullable(),
@@ -75,7 +75,7 @@ export const FeatureUpdateSchema = FeatureCreateSchema.partial();
 
 export const IssueCreateSchema = z.object({
     title: z.string().min(1, 'Issue title is required').max(500, 'Issue title too long'),
-    description: z.string().min(1, 'Issue description is required').max(10000, 'Description too long'),
+    description: z.string().max(10000, 'Description too long').optional(),
     severity: z.enum(['low', 'medium', 'high', 'critical']),
     status: z.enum(['open', 'in_progress', 'resolved', 'closed']).default('open'),
     projectId: z.string().uuid('Invalid project ID'),
