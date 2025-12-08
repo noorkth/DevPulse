@@ -9,6 +9,7 @@ import Issues from './pages/Issues';
 import Users from './pages/Users';
 import Analytics from './pages/Analytics';
 import { PerformanceDashboard } from './pages/PerformanceDashboard';
+import DeveloperPerformance from './pages/DeveloperPerformance';
 import { MLInsights } from './pages/MLInsights';
 import Settings from './pages/Settings';
 import { ToastProvider } from './components/common/Toast';
@@ -48,6 +49,7 @@ function App() {
                         <Route path="/projects" element={<Projects />} />
                         <Route path="/issues" element={<Issues />} />
                         <Route path="/developers" element={<Users />} />
+                        <Route path="/developers/:id/performance" element={<DeveloperPerformance />} />
                         <Route path="/users" element={<Users />} />
                         <Route path="/analytics" element={<Analytics />} />
                         <Route path="/performance" element={<PerformanceDashboard />} />

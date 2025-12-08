@@ -1,0 +1,262 @@
+.developer-performance-page {
+    padding: 2rem;
+}
+
+.performance-header {
+    margin-bottom: 2rem;
+}
+
+.back-button {
+    margin-bottom: 1rem;
+}
+
+.developer-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.developer-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+}
+
+.developer-info h1 {
+    margin: 0;
+    font-size: 2rem;
+    color: var(--color-text-primary);
+}
+
+.developer-title {
+    margin: 0.5rem 0 0 0;
+    color: var(--color-text-secondary);
+    font-size: 1.1rem;
+}
+
+.key-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.metric-card {
+    padding: 1.5rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    text-align: center;
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+}
+
+.metric-label {
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.chart-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.125rem;
+    color: var(--color-text-primary);
+}
+
+.chart-subtitle {
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.chart-container {
+    margin-top: 1rem;
+}
+
+.team-comparison {
+    margin-top: 1rem;
+}
+
+.comparison-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.comparison-item {
+    padding: 1rem;
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-md);
+}
+
+.comparison-label {
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 0.75rem;
+}
+
+.comparison-values {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.25rem;
+}
+
+.developer-value {
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.vs {
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+}
+
+.team-value {
+    color: var(--color-text-secondary);
+}
+
+.reopened-issues-table {
+    margin-top: 1rem;
+}
+
+.simple-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.simple-table th {
+    text-align: left;
+    padding: 0.75rem;
+    border-bottom: 2px solid var(--color-border);
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+}
+
+.simple-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+}
+
+.text-secondary {
+    color: var(--color-text-secondary);
+}
+
+.severity-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.severity-critical {
+    background: var(--color-severity-critical);
+    color: white;
+}
+
+.severity-high {
+    background: var(--color-severity-high);
+    color: white;
+}
+
+.severity-medium {
+    background: var(--color-severity-medium);
+    color: white;
+}
+
+.severity-low {
+    background: var(--color-severity-low);
+    color: white;
+}
+
+.recurrence-badge {
+    background: var(--color-warning);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.status-open {
+    background: var(--color-danger);
+    color: white;
+}
+
+.status-in_progress {
+    background: var(--color-warning);
+    color: white;
+}
+
+.status-resolved {
+    background: var(--color-success);
+    color: white;
+}
+
+.loading,
+.error {
+    padding: 3rem;
+    text-align: center;
+    font-size: 1.25rem;
+    color: var(--color-text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .developer-performance-page {
+        padding: 1rem;
+    }
+
+    .developer-info {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .key-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .comparison-values {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}

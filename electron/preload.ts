@@ -80,6 +80,26 @@ const api = {
             ipcRenderer.invoke('ml:recommendDeveloper', issueData),
     },
 
+    // Performance Analytics
+    performance: {
+        getDeveloperDetail: (developerId: string, timeframe?: any) =>
+            ipcRenderer.invoke('performance:getDeveloperDetail', developerId, timeframe),
+        getVelocityTrend: (developerId: string, weeks?: number) =>
+            ipcRenderer.invoke('performance:getVelocityTrend', developerId, weeks),
+        getResolutionTimeBreakdown: (developerId: string) =>
+            ipcRenderer.invoke('performance:getResolutionTimeBreakdown', developerId),
+        getSkillsUtilization: (developerId: string) =>
+            ipcRenderer.invoke('performance:getSkillsUtilization', developerId),
+        getReopenedIssues: (developerId: string) =>
+            ipcRenderer.invoke('performance:getReopenedIssues', developerId),
+        getQualityTrend: (developerId: string, weeks?: number) =>
+            ipcRenderer.invoke('performance:getQualityTrend', developerId, weeks),
+        getWorkloadDistribution: (developerId?: string) =>
+            ipcRenderer.invoke('performance:getWorkloadDistribution', developerId),
+        getTeamComparison: (developerId: string) =>
+            ipcRenderer.invoke('performance:getTeamComparison', developerId),
+    },
+
     // Theme
     theme: {
         get: () => ipcRenderer.invoke('theme:get'),

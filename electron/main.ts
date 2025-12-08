@@ -9,6 +9,7 @@ import { setupIssueHandlers } from './ipc/issues';
 import { setupAnalyticsHandlers } from './ipc/analytics';
 import { setupDataHandlers } from './ipc/data';
 import { setupMLHandlers } from './ipc/ml';
+import { setupPerformanceHandlers } from './ipc/performance';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -125,6 +126,8 @@ app.whenReady().then(async () => {
     setupAnalyticsHandlers();
     setupDataHandlers();
     setupMLHandlers();
+    setupPerformanceHandlers();
+    console.log('🤖 ML handlers registered');
 
     // Theme handlers
     ipcMain.handle('theme:get', () => {

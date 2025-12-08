@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
@@ -6,6 +7,7 @@ import Input from '../components/common/Input';
 import './Users.css';
 
 const Users: React.FC = () => {
+    const navigate = useNavigate();
     const [users, setUsers] = useState<any[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -205,8 +207,17 @@ const Users: React.FC = () => {
                     )}
 
                     <div className="user-actions">
+                        {user.role === 'developer' && (
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={() => navigate(`/developers/${user.id}/performance`)}
+                            >
+                                📊 Performance
+                            </Button>
+                        )}
                         <Button variant="secondary" size="sm" onClick={() => handleEdit(user)}>
-                            Edit
+                            ✏️ Edit
                         </Button>
                     </div>
                 </div>
