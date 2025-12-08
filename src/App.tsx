@@ -8,6 +8,7 @@ import Projects from './pages/Projects';
 import Issues from './pages/Issues';
 import Developers from './pages/Developers';
 import Analytics from './pages/Analytics';
+import { PerformanceDashboard } from './pages/PerformanceDashboard';
 import Settings from './pages/Settings';
 import { ToastProvider } from './components/common/Toast';
 
@@ -47,6 +48,7 @@ function App() {
                         <Route path="/issues" element={<Issues />} />
                         <Route path="/developers" element={<Developers />} />
                         <Route path="/analytics" element={<Analytics />} />
+                        <Route path="/performance" element={<PerformanceDashboard />} />
                         <Route path="/settings" element={<Settings />} />
                     </Routes>
                 </Layout>

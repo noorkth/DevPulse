@@ -13,6 +13,7 @@ const menuItems = [
     { path: '/issues', label: 'Issues', icon: '🐛' },
     { path: '/developers', label: 'Developers', icon: '👨‍💻' },
     { path: '/analytics', label: 'Analytics', icon: '📈' },
+    { path: '/performance', label: 'Performance', icon: '⚡' },
     { path: '/settings', label: 'Settings', icon: '⚙️' },
 ];
 
