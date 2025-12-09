@@ -34,7 +34,7 @@ const CSVImport: React.FC<CSVImportProps> = ({ onImportComplete }) => {
             }
 
             // Import issues
-            const results = await window.api.issues.bulkImport(parseResult.data);
+            const results = await (window.api.issues as any).bulkImport(parseResult.data);
             setImportResults(results);
 
             if (results.success > 0) {

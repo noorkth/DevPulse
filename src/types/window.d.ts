@@ -95,7 +95,15 @@ declare global {
             clients: any;
             projects: any;
             developers: any;
-            issues: any;
+            issues: {
+                getAll: (filters?: any) => Promise<any[]>;
+                getById: (id: string) => Promise<any>;
+                create: (data: any) => Promise<any>;
+                update: (id: string, data: any) => Promise<any>;
+                resolve: (id: string, fixQuality: number) => Promise<any>;
+                detectRecurrence: (issueId: string) => Promise<any>;
+                bulkImport: (issues: any[]) => Promise<{ success: number; failed: number; errors: string[] }>;
+            };
             analytics: any;
             ml: any;
             performance: PerformanceAPI;
