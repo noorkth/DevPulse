@@ -12,6 +12,7 @@ import { PerformanceDashboard } from './pages/PerformanceDashboard';
 import DeveloperPerformance from './pages/DeveloperPerformance';
 import { MLInsights } from './pages/MLInsights';
 import Settings from './pages/Settings';
+import EmailSettings from './pages/EmailSettings';
 import { ToastProvider } from './components/common/Toast';
 
 function App() {
@@ -40,23 +41,23 @@ function App() {
     return (
         <ToastProvider>
             <BrowserRouter>
-                <Layout theme={theme} onToggleTheme={toggleTheme}>
-                    <Routes>
-                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/products" element={<Products />} />
-                        <Route path="/clients" element={<Clients />} />
-                        <Route path="/projects" element={<Projects />} />
-                        <Route path="/issues" element={<Issues />} />
-                        <Route path="/developers" element={<Users />} />
-                        <Route path="/developers/:id/performance" element={<DeveloperPerformance />} />
-                        <Route path="/users" element={<Users />} />
-                        <Route path="/analytics" element={<Analytics />} />
-                        <Route path="/performance" element={<PerformanceDashboard />} />
-                        <Route path="/ml-insights" element={<MLInsights />} />
-                        <Route path="/settings" element={<Settings />} />
-                    </Routes>
-                </Layout>
+                <Routes>
+                    <Route path="/" element={<Layout />}>
+                        <Route index element={<Navigate to="/dashboard" replace />} />
+                        <Route path="dashboard" element={<Dashboard />} />
+                        <Route path="products" element={<Products />} />
+                        <Route path="clients" element={<Clients />} />
+                        <Route path="projects" element={<Projects />} />
+                        <Route path="issues" element={<Issues />} />
+                        <Route path="developers" element={<Users />} />
+                        <Route path="analytics" element={<Analytics />} />
+                        <Route path="performance" element={<PerformanceDashboard />} />
+                        <Route path="performance/:developerId" element={<DeveloperPerformance />} />
+                        <Route path="ml-insights" element={<MLInsights />} />
+                        <Route path="settings" element={<Settings />} />
+                        <Route path="email-settings" element={<EmailSettings />} />
+                    </Route>
+                </Routes>
             </BrowserRouter>
         </ToastProvider>
     );

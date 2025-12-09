@@ -1,6 +1,7 @@
 {
   "name": "devpulse",
-  "version": "3.0.1",
+  "private": true,
+  "version": "3.1.0",
   "description": "Developer Productivity & Issue Intelligence Desktop App with AI-Powered Analytics",
   "main": "dist-electron/main.js",
   "scripts": {
@@ -29,9 +30,15 @@
   "dependencies": {
     "@prisma/client": "^5.7.1",
     "adm-zip": "^0.5.16",
-    "date-fns": "^3.0.6",
+    "date-fns": "^3.6.0",
     "electron-store": "^8.1.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.4",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.11",
+    "papaparse": "^5.5.3",
     "react": "^18.2.0",
+    "react-date-range": "^2.0.1",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.21.1",
     "recharts": "^2.15.4",
@@ -41,6 +48,9 @@
   "devDependencies": {
     "@types/adm-zip": "^0.5.7",
     "@types/node": "^20.10.6",
+    "@types/node-cron": "^3.0.11",
+    "@types/nodemailer": "^7.0.4",
+    "@types/papaparse": "^5.5.1",
     "@types/react": "^18.2.46",
     "@types/react-dom": "^18.2.18",
     "@types/recharts": "^1.8.29",

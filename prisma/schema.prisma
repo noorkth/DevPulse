@@ -79,6 +79,7 @@ model Developer {
   // Relations
   issues         Issue[]
   projects       DeveloperProject[]
+  goals          DeveloperGoal[] // Performance goals
   analytics      AnalyticsCache[]
 
   @@index([email])
@@ -119,30 +120,33 @@ model Feature {
 
 // Issue Model
 model Issue {
-  id              String    @id @default(uuid())
+  id              String   @id @default(uuid())
   title           String
   description     String
-  severity        String    // low, medium, high, critical
-  status          String    @default("open") // open, in-progress, resolved, closed
-  featureId       String?
+  severity        String   // critical, high, medium, low
+  status          String   @default("open") // open, in_progress, resolved, closed
+  featureId       String?  // Made optional
   projectId       String
-  assignedToId    String?
-  createdAt       DateTime  @default(now())
+  assignedToId    String
+  createdAt       DateTime @default(now())
   resolvedAt      DateTime?
-  resolutionTime  Int?      // in hours
-  fixQuality      Int?      // 1-5 rating
-  isRecurring     Boolean   @default(false)
-  recurrenceCount Int       @default(0)
-  parentIssueId   String?   // if this is a recurring issue
+  resolutionTime  Float? // in hours
+  fixQuality      Int? // 1-5 stars rating for fix quality
+  isRecurring     Boolean  @default(false)
+  recurrenceCount Int      @default(0)
+  parentIssueId   String?  // Self-referential for related issues
   notes           String?
-  attachments     String?   // JSON array of file paths
+  attachments     String?  // JSON array of file paths
+  estimatedTime   Float?   // ML predicted time
+  tags            String?  // JSON array of tags
+  updatedAt       DateTime @updatedAt
 
   // Relations
-  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  assignedTo      Developer? @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
-  feature         Feature?   @relation(fields: [featureId], references: [id], onDelete: SetNull)
-  parentIssue     Issue?     @relation("IssueRecurrence", fields: [parentIssueId], references: [id], onDelete: SetNull)
-  childIssues     Issue[]    @relation("IssueRecurrence")
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignedTo    Developer @relation(fields: [assignedToId], references: [id])
+  feature       Feature?  @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  parentIssue   Issue?    @relation("IssueRecurrence", fields: [parentIssueId], references: [id])
+  childIssues   Issue[]   @relation("IssueRecurrence")
 
   @@index([projectId])
   @@index([assignedToId])
@@ -150,6 +154,32 @@ model Issue {
   @@index([status])
   @@index([severity])
   @@index([isRecurring])
+}
+
+// Developer Goal Model for performance tracking
+model DeveloperGoal {
+  id           String   @id @default(uuid())
+  developerId  String
+  
+  goalType     String   // 'productivity', 'quality', 'velocity', 'resolution_time'
+  targetValue  Float    // Target to achieve
+  currentValue Float?   // Current progress
+  
+  startDate    DateTime
+  endDate      DateTime
+  
+  status       String   @default("active") // 'active', 'achieved', 'missed', 'cancelled'
+  notes        String?  // Optional notes
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  developer    Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  
+  @@index([developerId])
+  @@index([status])
+  @@index([goalType])
 }
 
 // Analytics Cache Model (for performance optimization)

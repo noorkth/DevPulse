@@ -1,0 +1,223 @@
+.date-range-picker-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.date-range-picker-container {
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    max-width: 900px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: auto;
+    animation: slideUp 0.3s ease-out;
+}
+
+.date-range-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.date-range-header h3 {
+    margin: 0;
+    color: var(--color-text-primary);
+    font-size: 1.25rem;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-danger);
+}
+
+.date-range-content {
+    padding: 1.5rem;
+    display: flex;
+    gap: 2rem;
+}
+
+.preset-buttons {
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.preset-buttons h4 {
+    margin: 0 0 0.75rem 0;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.preset-btn {
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.preset-btn:hover {
+    background: var(--color-bg-tertiary);
+    border-color: var(--color-primary);
+    transform: translateX(4px);
+}
+
+.calendar-container {
+    flex: 1;
+}
+
+/* Override react-date-range styles for dark mode */
+.rdrCalendarWrapper {
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+}
+
+.rdrMonth {
+    background: var(--color-bg-primary);
+}
+
+.rdrMonthName {
+    color: var(--color-text-primary);
+}
+
+.rdrWeekDay {
+    color: var(--color-text-secondary);
+}
+
+.rdrDay {
+    color: var(--color-text-primary);
+}
+
+.rdrDayDisabled {
+    background-color: var(--color-bg-secondary);
+}
+
+.rdrDayNumber span {
+    color: var(--color-text-primary);
+}
+
+.rdrDayToday .rdrDayNumber span:after {
+    background: var(--color-primary);
+}
+
+.rdrDayPassive .rdrDayNumber span {
+    color: var(--color-text-secondary);
+}
+
+.date-range-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.cancel-btn,
+.apply-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.cancel-btn {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+}
+
+.cancel-btn:hover {
+    background: var(--color-bg-tertiary);
+}
+
+.apply-btn {
+    background: var(--color-primary);
+    color: white;
+}
+
+.apply-btn:hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .date-range-content {
+        flex-direction: column;
+    }
+
+    .preset-buttons {
+        min-width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .preset-btn {
+        flex: 1 1 calc(50% - 0.25rem);
+    }
+
+    .calendar-container .rdrDateRangePickerWrapper {
+        flex-direction: column;
+    }
+}

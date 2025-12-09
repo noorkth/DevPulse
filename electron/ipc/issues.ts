@@ -92,25 +92,32 @@ export function setupIssueHandlers() {
         const prisma = getPrisma();
         try {
             const validatedData = validate(IssueCreateSchema, data);
+
+            // Build data object conditionally
+            const createData: any = {
+                title: validatedData.title,
+                description: validatedData.description,
+                severity: validatedData.severity,
+                status: validatedData.status || 'open',
+                project: { connect: { id: validatedData.projectId } },
+                assignedTo: { connect: { id: validatedData.assignedToId } },
+                notes: validatedData.notes || null,
+                attachments: validatedData.attachments ? JSON.stringify(validatedData.attachments) : null,
+            };
+
+            // Only add feature if featureId exists
+            if (validatedData.featureId) {
+                createData.feature = { connect: { id: validatedData.featureId } };
+            }
+
             const issue = await prisma.issue.create({
-                data: {
-                    title: validatedData.title,
-                    description: validatedData.description,
-                    severity: validatedData.severity,
-                    status: validatedData.status,
-                    projectId: validatedData.projectId,
-                    featureId: validatedData.featureId || null,
-                    assignedToId: validatedData.assignedToId || null,
-                    notes: validatedData.notes || null,
-                    attachments: validatedData.attachments ? JSON.stringify(validatedData.attachments) : null,
-                },
+                data: createData,
                 include: {
                     project: true,
                     assignedTo: true,
                     feature: true,
                 },
             });
-
             return issue;
         } catch (error) {
             console.error('Error creating issue:', error);
@@ -257,6 +264,89 @@ export function setupIssueHandlers() {
         } catch (error) {
             console.error('Error detecting recurrence:', error);
             throw error;
+        }
+    });
+
+    // Bulk import issues from CSV
+    ipcMain.handle('issues:bulkImport', async (event, issues: any[]) => {
+        const senderId = event.sender.id.toString();
+
+        if (!writeLimiter.isAllowed(senderId)) {
+            throw new RateLimitError('Too many requests. Please slow down.');
+        }
+
+        const prisma = getPrisma();
+        try {
+            const results = {
+                success: 0,
+                failed: 0,
+                errors: [] as string[],
+            };
+
+            for (const [index, issueData] of issues.entries()) {
+                try {
+                    // Find referenced entities by name
+                    let projectId = undefined;
+                    let assignedToId = undefined;
+                    let featureId = undefined;
+
+                    if (issueData.project) {
+                        const project = await prisma.project.findFirst({
+                            where: { name: issueData.project },
+                        });
+                        projectId = project?.id;
+                    }
+
+                    if (issueData.assignedTo) {
+                        const developer = await prisma.developer.findFirst({
+                            where: { email: issueData.assignedTo },
+                        });
+                        assignedToId = developer?.id;
+                    }
+
+                    if (issueData.feature && projectId) {
+                        // Only lookup feature if project exists
+                        const feature = await prisma.feature.findFirst({
+                            where: {
+                                name: issueData.feature,
+                                projectId: projectId  // Feature should belong to the project
+                            },
+                        });
+                        featureId = feature?.id;
+                    }
+
+                    // Prepare tags - convert to JSON string array
+                    let tagsArray: string[] = [];
+                    if (issueData.tags) {
+                        tagsArray = issueData.tags.split(',').map((t: string) => t.trim());
+                    }
+
+                    // Create the issue
+                    await prisma.issue.create({
+                        data: {
+                            title: issueData.title,
+                            description: issueData.description || '',
+                            severity: issueData.severity || 'medium',
+                            status: issueData.status || 'open',
+                            projectId,
+                            assignedToId,
+                            featureId,
+                            estimatedTime: issueData.estimatedTime,
+                            tags: JSON.stringify(tagsArray), // Store as JSON string
+                        },
+                    });
+
+                    results.success++;
+                } catch (error: any) {
+                    results.failed++;
+                    results.errors.push(`Row ${index + 1}: ${error.message}`);
+                }
+            }
+
+            return results;
+        } catch (error: any) {
+            console.error('Error bulk importing issues:', error);
+            throw new Error(`Failed to bulk import issues: ${error.message}`);
         }
     });
 }

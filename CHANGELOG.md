@@ -2,6 +2,56 @@
 
 All notable changes to DevPulse will be documented in this file.
 
+## [3.1.0] - 2024-12-10
+
+### 🎉 Added
+- **CSV Bulk Import for Issues**
+  - Upload multiple issues via CSV file
+  - Automatic validation and error reporting
+  - Downloadable CSV template with examples
+  - Auto-match projects/users by name/email
+  - Import results summary with success/failure counts
+  
+- **UI/UX Enhancements**
+  - Theme Toggle component (dark/light mode switcher)
+  - ConfirmDialog component for confirmation prompts
+  - Enhanced chart tooltips with icons and smart formatting
+  - Custom Recharts theme with vibrant colors
+  
+- **Chart Export Features**
+  - Export charts as PNG
+  - Export charts as PDF
+  - Export chart data as CSV
+  - Copy charts to clipboard
+
+### 🔧 Improved
+- Theme persistence with localStorage
+- System theme preference detection
+- Smooth theme transitions
+- Improved color contrasts (WCAG AA compliant)
+- Better dark mode support for charts
+- Project-scoped feature lookup in CSV import
+
+### 🐛 Fixed
+- Layout scrolling issues
+- Theme toggle placement (moved to top-right)
+- CSV import tags format (now JSON string array)
+- Feature lookup in bulk import
+
+### 📦 Dependencies
+- Added `papaparse` for CSV parsing
+- Added `html2canvas` for image export
+- Added `jspdf` for PDF generation
+- Added `@types/papaparse`
+
+### 🔒 Security
+- Rate limiting on bulk import operations
+- Input validation for CSV data
+- Sanitized file uploads
+
+---
+
+## [3.0.1] - 2024-12-09
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 

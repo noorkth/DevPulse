@@ -53,6 +53,8 @@ const api = {
             ipcRenderer.invoke('issues:resolve', id, fixQuality),
         detectRecurrence: (issueId: string) =>
             ipcRenderer.invoke('issues:detectRecurrence', issueId),
+        bulkImport: (issues: any[]) =>
+            ipcRenderer.invoke('issues:bulkImport', issues),
     },
 
     // Analytics
@@ -84,20 +86,41 @@ const api = {
     performance: {
         getDeveloperDetail: (developerId: string, timeframe?: any) =>
             ipcRenderer.invoke('performance:getDeveloperDetail', developerId, timeframe),
-        getVelocityTrend: (developerId: string, weeks?: number) =>
-            ipcRenderer.invoke('performance:getVelocityTrend', developerId, weeks),
-        getResolutionTimeBreakdown: (developerId: string) =>
-            ipcRenderer.invoke('performance:getResolutionTimeBreakdown', developerId),
-        getSkillsUtilization: (developerId: string) =>
-            ipcRenderer.invoke('performance:getSkillsUtilization', developerId),
-        getReopenedIssues: (developerId: string) =>
-            ipcRenderer.invoke('performance:getReopenedIssues', developerId),
-        getQualityTrend: (developerId: string, weeks?: number) =>
-            ipcRenderer.invoke('performance:getQualityTrend', developerId, weeks),
+        getVelocityTrend: (developerId: string, weeks?: number, timeframe?: any) =>
+            ipcRenderer.invoke('performance:getVelocityTrend', developerId, weeks, timeframe),
+        getResolutionTimeBreakdown: (developerId: string, timeframe?: any) =>
+            ipcRenderer.invoke('performance:getResolutionTimeBreakdown', developerId, timeframe),
+        getSkillsUtilization: (developerId: string, timeframe?: any) =>
+            ipcRenderer.invoke('performance:getSkillsUtilization', developerId, timeframe),
+        getReopenedIssues: (developerId: string, timeframe?: any) =>
+            ipcRenderer.invoke('performance:getReopenedIssues', developerId, timeframe),
+        getQualityTrend: (developerId: string, weeks?: number, timeframe?: any) =>
+            ipcRenderer.invoke('performance:getQualityTrend', developerId, weeks, timeframe),
         getWorkloadDistribution: (developerId?: string) =>
             ipcRenderer.invoke('performance:getWorkloadDistribution', developerId),
-        getTeamComparison: (developerId: string) =>
-            ipcRenderer.invoke('performance:getTeamComparison', developerId),
+        getTeamComparison: (developerId: string, timeframe?: any) =>
+            ipcRenderer.invoke('performance:getTeamComparison', developerId, timeframe),
+    },
+
+    // Goals Management
+    goals: {
+        create: (goalData: any) => ipcRenderer.invoke('goals:create', goalData),
+        getForDeveloper: (developerId: string) => ipcRenderer.invoke('goals:getForDeveloper', developerId),
+        updateProgress: (goalId: string, currentValue: number) =>
+            ipcRenderer.invoke('goals:updateProgress', goalId, currentValue),
+        update: (goalId: string, updateData: any) =>
+            ipcRenderer.invoke('goals:update', goalId, updateData),
+        delete: (goalId: string) => ipcRenderer.invoke('goals:delete', goalId),
+        checkExpired: () => ipcRenderer.invoke('goals:checkExpired'),
+    },
+
+    // Email Management
+    email: {
+        testConnection: (config?: any) => ipcRenderer.invoke('email:testConnection', config),
+        sendTest: (emailAddress: string, config?: any) => ipcRenderer.invoke('email:sendTest', emailAddress, config),
+        sendWeeklyReport: (developerId: string) => ipcRenderer.invoke('email:sendWeeklyReport', developerId),
+        triggerWeeklyReports: () => ipcRenderer.invoke('email:triggerWeeklyReports'),
+        getSchedulerStatus: () => ipcRenderer.invoke('email:getSchedulerStatus'),
     },
 
     // Theme

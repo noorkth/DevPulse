@@ -10,6 +10,18 @@ const Settings: React.FC = () => {
 
     useEffect(() => {
         loadSettings();
+
+        // Listen for theme changes from ThemeToggle
+        const handleThemeChange = (e: CustomEvent) => {
+            const newTheme = e.detail.theme;
+            setTheme(newTheme);
+        };
+
+        window.addEventListener('themechange' as any, handleThemeChange);
+
+        return () => {
+            window.removeEventListener('themechange' as any, handleThemeChange);
+        };
     }, []);
 
     const loadSettings = async () => {
@@ -31,12 +43,20 @@ const Settings: React.FC = () => {
     };
 
     const handleThemeChange = async (newTheme: 'light' | 'dark') => {
-        try {
+        setTheme(newTheme);
+
+        // Update DOM
+        document.documentElement.setAttribute('data-theme', newTheme);
+
+        // Save to localStorage
+        localStorage.setItem('theme', newTheme);
+
+        // Dispatch custom event for ThemeToggle component
+        window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: newTheme } }));
+
+        // Update Electron store
+        if (window.api?.theme) {
             await window.api.theme.set(newTheme);
-            setTheme(newTheme);
-            document.documentElement.setAttribute('data-theme', newTheme);
-        } catch (error) {
-            console.error('Error changing theme:', error);
         }
     };
 

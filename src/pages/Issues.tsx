@@ -4,6 +4,7 @@ import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import Input from '../components/common/Input';
+import CSVImport from '../components/issues/CSVImport';
 import './Issues.css';
 
 const severityColors = {
@@ -145,9 +146,14 @@ const Issues: React.FC = () => {
 
     return (
         <div className="issues-page">
-            <div className="page-header">
+            <div className="issues-header">
                 <h2>Issues</h2>
-                <Button onClick={() => setIsModalOpen(true)}>+ Create Issue</Button>
+                <div className="header-actions">
+                    <CSVImport onImportComplete={loadData} />
+                    <Button variant="primary" onClick={() => setIsModalOpen(true)}>
+                        + Create Issue
+                    </Button>
+                </div>
             </div>
 
             {/* Filter Controls */}

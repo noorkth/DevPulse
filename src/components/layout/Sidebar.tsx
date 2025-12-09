@@ -15,6 +15,7 @@ const menuItems = [
     { path: '/analytics', label: 'Analytics', icon: '📈' },
     { path: '/performance', label: 'Performance', icon: '⚡' },
     { path: '/ml-insights', label: 'ML Insights', icon: '🤖' },
+    { path: '/email-settings', label: 'Email Settings', icon: '📧' },
     { path: '/settings', label: 'Settings', icon: '⚙️' },
 ];
 

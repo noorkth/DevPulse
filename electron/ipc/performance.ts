@@ -6,10 +6,10 @@ export function setupPerformanceHandlers() {
     const prisma = getPrisma();
 
     // Get comprehensive developer performance detail
-    ipcMain.handle('performance:getDeveloperDetail', async (_, developerId: string, timeframe?: { weeks?: number }) => {
+    ipcMain.handle('performance:getDeveloperDetail', async (_, developerId: string, timeframe?: { startDate?: Date, endDate?: Date }) => {
         try {
-            const weeks = timeframe?.weeks || 12; // Default 12 weeks
-            const startDate = subWeeks(new Date(), weeks);
+            const startDate = timeframe?.startDate ? new Date(timeframe.startDate) : subWeeks(new Date(), 12);
+            const endDate = timeframe?.endDate ? new Date(timeframe.endDate) : new Date();
 
             const developer = await prisma.developer.findUnique({
                 where: { id: developerId },
@@ -104,9 +104,10 @@ export function setupPerformanceHandlers() {
     });
 
     // Get weekly velocity trend
-    ipcMain.handle('performance:getVelocityTrend', async (_, developerId: string, weeks: number = 12) => {
+    ipcMain.handle('performance:getVelocityTrend', async (_, developerId: string, weeks: number = 12, timeframe?: { startDate?: Date, endDate?: Date }) => {
         try {
-            const startDate = subWeeks(new Date(), weeks);
+            const startDate = timeframe?.startDate ? new Date(timeframe.startDate) : subWeeks(new Date(), weeks);
+            const endDate = timeframe?.endDate ? new Date(timeframe.endDate) : new Date();
 
             const issues = await prisma.issue.findMany({
                 where: {
@@ -157,11 +158,14 @@ export function setupPerformanceHandlers() {
     });
 
     // Get resolution time breakdown
-    ipcMain.handle('performance:getResolutionTimeBreakdown', async (_, developerId: string) => {
+    ipcMain.handle('performance:getResolutionTimeBreakdown', async (_, developerId: string, timeframe?: { startDate?: Date, endDate?: Date }) => {
         try {
+            const startDate = timeframe?.startDate ? new Date(timeframe.startDate) : subWeeks(new Date(), 12);
+            const endDate = timeframe?.endDate ? new Date(timeframe.endDate) : new Date();
             const issues = await prisma.issue.findMany({
                 where: {
                     assignedToId: developerId,
+                    createdAt: { gte: startDate, lte: endDate },
                     resolutionTime: { not: null }
                 },
                 select: {
@@ -229,8 +233,10 @@ export function setupPerformanceHandlers() {
     });
 
     // Get skills utilization
-    ipcMain.handle('performance:getSkillsUtilization', async (_, developerId: string) => {
+    ipcMain.handle('performance:getSkillsUtilization', async (_, developerId: string, timeframe?: { startDate?: Date, endDate?: Date }) => {
         try {
+            const startDate = timeframe?.startDate ? new Date(timeframe.startDate) : subWeeks(new Date(), 12);
+            const endDate = timeframe?.endDate ? new Date(timeframe.endDate) : new Date();
             const developer = await prisma.developer.findUnique({
                 where: { id: developerId },
                 select: { skills: true }
@@ -241,7 +247,10 @@ export function setupPerformanceHandlers() {
             }
 
             const issues = await prisma.issue.findMany({
-                where: { assignedToId: developerId },
+                where: {
+                    assignedToId: developerId,
+                    createdAt: { gte: startDate, lte: endDate }
+                },
                 include: {
                     project: {
                         select: {
@@ -272,12 +281,15 @@ export function setupPerformanceHandlers() {
     });
 
     // Get reopened issues
-    ipcMain.handle('performance:getReopenedIssues', async (_, developerId: string) => {
+    ipcMain.handle('performance:getReopenedIssues', async (_, developerId: string, timeframe?: { startDate?: Date, endDate?: Date }) => {
         try {
+            const startDate = timeframe?.startDate ? new Date(timeframe.startDate) : subWeeks(new Date(), 12);
+            const endDate = timeframe?.endDate ? new Date(timeframe.endDate) : new Date();
             // For now, use recurring issues as proxy for reopened
             const reopenedIssues = await prisma.issue.findMany({
                 where: {
                     assignedToId: developerId,
+                    createdAt: { gte: startDate, lte: endDate },
                     isRecurring: true
                 },
                 include: {
@@ -313,9 +325,11 @@ export function setupPerformanceHandlers() {
     });
 
     // Get quality score trend over time
-    ipcMain.handle('performance:getQualityTrend', async (_, developerId: string, weeks: number = 12) => {
+    ipcMain.handle('performance:getQualityTrend', async (_, developerId: string, weeks: number = 12, timeframe?: { startDate?: Date, endDate?: Date }) => {
         try {
-            const startDate = subWeeks(new Date(), weeks);
+            const startDate = timeframe?.startDate ? new Date(timeframe.startDate) : subWeeks(new Date(), weeks);
+            const endDate = timeframe?.endDate ? new Date(timeframe.endDate) : new Date();
+
 
             const issues = await prisma.issue.findMany({
                 where: {
@@ -444,13 +458,19 @@ export function setupPerformanceHandlers() {
     });
 
     // Get team comparison for a developer
-    ipcMain.handle('performance:getTeamComparison', async (_, developerId: string) => {
+    ipcMain.handle('performance:getTeamComparison', async (_, developerId: string, timeframe?: { startDate?: Date, endDate?: Date }) => {
         try {
+            const startDate = timeframe?.startDate ? new Date(timeframe.startDate) : subWeeks(new Date(), 12);
+            const endDate = timeframe?.endDate ? new Date(timeframe.endDate) : new Date();
             // Get all developers (excluding managers)
             const developers = await prisma.developer.findMany({
                 where: { role: 'developer' },
                 include: {
-                    issues: true
+                    issues: {
+                        where: {
+                            createdAt: { gte: startDate, lte: endDate }
+                        }
+                    }
                 }
             });
 

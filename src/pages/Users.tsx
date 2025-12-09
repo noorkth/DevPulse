@@ -211,9 +211,9 @@ const Users: React.FC = () => {
                             <Button
                                 variant="primary"
                                 size="sm"
-                                onClick={() => navigate(`/developers/${user.id}/performance`)}
+                                onClick={() => navigate(`/performance/${user.id}`)}
                             >
-                                📊 Performance
+                                📊 View Performance
                             </Button>
                         )}
                         <Button variant="secondary" size="sm" onClick={() => handleEdit(user)}>

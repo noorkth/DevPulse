@@ -84,8 +84,8 @@ const Dashboard: React.FC = () => {
     return (
         <div className="dashboard">
             {/* Key Metrics */}
-            <div className="metrics-grid">
-                <Card>
+            <div className="metrics-grid stagger-children">
+                <Card className="animate-slide-up">
                     <div className="metric">
                         <div className="metric-icon">📊</div>
                         <div className="metric-content">
@@ -95,7 +95,7 @@ const Dashboard: React.FC = () => {
                     </div>
                 </Card>
 
-                <Card>
+                <Card className="animate-slide-up">
                     <div className="metric">
                         <div className="metric-icon">🔓</div>
                         <div className="metric-content">
@@ -105,7 +105,7 @@ const Dashboard: React.FC = () => {
                     </div>
                 </Card>
 
-                <Card>
+                <Card className="animate-slide-up">
                     <div className="metric">
                         <div className="metric-icon">✅</div>
                         <div className="metric-content">
@@ -115,7 +115,7 @@ const Dashboard: React.FC = () => {
                     </div>
                 </Card>
 
-                <Card>
+                <Card className="animate-slide-up">
                     <div className="metric">
                         <div className="metric-icon">⏱️</div>
                         <div className="metric-content">
@@ -125,7 +125,7 @@ const Dashboard: React.FC = () => {
                     </div>
                 </Card>
 
-                <Card>
+                <Card className="animate-slide-up">
                     <div className="metric">
                         <div className="metric-icon">🔄</div>
                         <div className="metric-content">
@@ -135,7 +135,7 @@ const Dashboard: React.FC = () => {
                     </div>
                 </Card>
 
-                <Card>
+                <Card className="animate-slide-up">
                     <div className="metric">
                         <div className="metric-icon">📈</div>
                         <div className="metric-content">

@@ -1,17 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { subWeeks, format } from 'date-fns';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
+import DateRangePicker from '../components/common/DateRangePicker';
+import GoalModal from '../components/common/GoalModal';
+import GoalCard from '../components/common/GoalCard';
+import { generatePerformancePDF } from '../utils/pdfGenerator';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import './DeveloperPerformance.css';
 
 const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
 
 const DeveloperPerformance: React.FC = () => {
-    const { id } = useParams<{ id: string }>();
+    const { developerId } = useParams<{ developerId: string }>();
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState(true);
+    const [dateRange, setDateRange] = useState({
+        startDate: subWeeks(new Date(), 12),
+        endDate: new Date()
+    });
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showGoalModal, setShowGoalModal] = useState(false);
+    const [goals, setGoals] = useState<any[]>([]);
     const [developerDetail, setDeveloperDetail] = useState<any>(null);
     const [velocityTrend, setVelocityTrend] = useState<any>(null);
     const [resolutionBreakdown, setResolutionBreakdown] = useState<any>(null);
@@ -21,22 +33,26 @@ const DeveloperPerformance: React.FC = () => {
     const [reopenedIssues, setReopenedIssues] = useState<any[]>([]);
 
     useEffect(() => {
-        if (id) {
+        if (developerId) {
             loadPerformanceData();
+            loadGoals();
         }
-    }, [id]);
+    }, [developerId, dateRange]);
 
     const loadPerformanceData = async () => {
         try {
             setLoading(true);
+            const api = window.api as any; // Type assertion for build
+            const timeframe = { startDate: dateRange.startDate, endDate: dateRange.endDate };
+
             const [detail, velocity, breakdown, skills, quality, comparison, reopened] = await Promise.all([
-                window.api.performance.getDeveloperDetail(id!),
-                window.api.performance.getVelocityTrend(id!, 12),
-                window.api.performance.getResolutionTimeBreakdown(id!),
-                window.api.performance.getSkillsUtilization(id!),
-                window.api.performance.getQualityTrend(id!, 12),
-                window.api.performance.getTeamComparison(id!),
-                window.api.performance.getReopenedIssues(id!)
+                api.performance.getDeveloperDetail(developerId!, timeframe),
+                api.performance.getVelocityTrend(developerId!, 12, timeframe),
+                api.performance.getResolutionTimeBreakdown(developerId!, timeframe),
+                api.performance.getSkillsUtilization(developerId!, timeframe),
+                api.performance.getQualityTrend(developerId!, 12, timeframe),
+                api.performance.getTeamComparison(developerId!, timeframe),
+                api.performance.getReopenedIssues(developerId!, timeframe)
             ]);
 
             setDeveloperDetail(detail);
@@ -50,6 +66,57 @@ const DeveloperPerformance: React.FC = () => {
             console.error('Error loading performance data:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDateRangeChange = (newRange: { startDate: Date; endDate: Date }) => {
+        setDateRange(newRange);
+        setShowDatePicker(false);
+    };
+
+    const handleExportPDF = async () => {
+        if (!developerDetail) return;
+
+        try {
+            await generatePerformancePDF(developerDetail, dateRange);
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert('Failed to generate PDF. Please try again.');
+        }
+    };
+
+    const loadGoals = async () => {
+        try {
+            const api = window.api as any;
+            const goalsData = await api.goals.getForDeveloper(developerId!);
+            setGoals(goalsData);
+        } catch (error) {
+            console.error('Error loading goals:', error);
+        }
+    };
+
+    const handleCreateGoal = async (goalData: any) => {
+        try {
+            const api = window.api as any;
+            await api.goals.create(goalData);
+            setShowGoalModal(false);
+            loadGoals();
+        } catch (error) {
+            console.error('Error creating goal:', error);
+            alert('Failed to create goal. Please try again.');
+        }
+    };
+
+    const handleDeleteGoal = async (goalId: string) => {
+        if (!confirm('Are you sure you want to delete this goal?')) return;
+
+        try {
+            const api = window.api as any;
+            await api.goals.delete(goalId);
+            loadGoals();
+        } catch (error) {
+            console.error('Error deleting goal:', error);
+            alert('Failed to delete goal. Please try again.');
         }
     };
 
@@ -75,9 +142,19 @@ const DeveloperPerformance: React.FC = () => {
         <div className="developer-performance-page">
             {/* Header */}
             <div className="performance-header">
-                <Button onClick={() => navigate('/users')} className="back-button">
-                    ← Back to Users
-                </Button>
+                <div className="header-top">
+                    <Button onClick={() => navigate('/users')} className="back-button">
+                        ← Back to Users
+                    </Button>
+                    <div className="header-actions">
+                        <Button onClick={() => setShowDatePicker(true)} variant="secondary">
+                            📅 {format(dateRange.startDate, 'MMM d, yyyy')} - {format(dateRange.endDate, 'MMM d, yyyy')}
+                        </Button>
+                        <Button onClick={handleExportPDF} variant="primary">
+                            📄 Export PDF
+                        </Button>
+                    </div>
+                </div>
                 <div className="developer-info">
                     <div className="developer-avatar">{developer.fullName.charAt(0)}</div>
                     <div>
@@ -102,6 +179,47 @@ const DeveloperPerformance: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Date Range Picker Modal */}
+            {showDatePicker && (
+                <DateRangePicker
+                    onRangeChange={handleDateRangeChange}
+                    onClose={() => setShowDatePicker(false)}
+                />
+            )}
+
+            {/* Goal Modal */}
+            {showGoalModal && (
+                <GoalModal
+                    developerId={developerId!}
+                    onClose={() => setShowGoalModal(false)}
+                    onSave={handleCreateGoal}
+                />
+            )}
+
+            {/* Goals & Targets Section */}
+            <Card>
+                <div className="section-header">
+                    <h3 className="chart-title">Goals & Targets</h3>
+                    <Button onClick={() => setShowGoalModal(true)}>+ Set New Goal</Button>
+                </div>
+
+                {goals.length === 0 ? (
+                    <div className="empty-goals">
+                        <p>No goals set yet. Create your first performance goal!</p>
+                    </div>
+                ) : (
+                    <div className="goals-grid">
+                        {goals.map((goal: any) => (
+                            <GoalCard
+                                key={goal.id}
+                                goal={goal}
+                                onDelete={() => handleDeleteGoal(goal.id)}
+                            />
+                        ))}
+                    </div>
+                )}
+            </Card>
 
             {/* Charts Grid */}
             <div className="charts-grid">
