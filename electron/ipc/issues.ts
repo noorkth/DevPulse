@@ -9,14 +9,15 @@ import {
     UUIDSchema
 } from '../validation/schemas';
 import { RateLimiter, RateLimitError, RateLimiterPresets } from '../security/rate-limiter';
+import { buildPaginationQuery, createPaginationResponse, PaginationParams } from '../utils/pagination';
 
 // Rate limiters for different operation types
 const readLimiter = new RateLimiter(RateLimiterPresets.READ.maxRequests, RateLimiterPresets.READ.windowMs);
 const writeLimiter = new RateLimiter(RateLimiterPresets.WRITE.maxRequests, RateLimiterPresets.WRITE.windowMs);
 
 export function setupIssueHandlers() {
-    // Get all issues with filters
-    ipcMain.handle('issues:getAll', async (event, filters?: any) => {
+    // Get all issues with filters and pagination
+    ipcMain.handle('issues:getAll', async (event, filters?: any, paginationParams?: PaginationParams) => {
         const senderId = event.sender.id.toString();
 
         if (!readLimiter.isAllowed(senderId)) {
@@ -25,7 +26,8 @@ export function setupIssueHandlers() {
 
         const prisma = getPrisma();
         try {
-            const validatedFilters = validate(IssueFilterSchema, filters);
+            // Only validate filters if provided
+            const validatedFilters = filters ? validate(IssueFilterSchema, filters) : null;
             const where: any = {};
 
             if (validatedFilters?.projectId) where.projectId = validatedFilters.projectId;
@@ -34,6 +36,28 @@ export function setupIssueHandlers() {
             if (validatedFilters?.severity) where.severity = validatedFilters.severity;
             if (validatedFilters?.isRecurring !== undefined) where.isRecurring = validatedFilters.isRecurring;
 
+            // Get total count for pagination
+            const total = await prisma.issue.count({ where });
+
+            // If no pagination requested, return all (backwards compatibility)
+            if (!paginationParams) {
+                const issues = await prisma.issue.findMany({
+                    where,
+                    include: {
+                        project: true,
+                        assignedTo: true,
+                        feature: true,
+                        parentIssue: true,
+                    },
+                    orderBy: { createdAt: 'desc' },
+                });
+                return issues;
+            }
+
+            // Build pagination query
+            const paginationQuery = buildPaginationQuery(paginationParams);
+
+            // Fetch paginated results
             const issues = await prisma.issue.findMany({
                 where,
                 include: {
@@ -42,10 +66,10 @@ export function setupIssueHandlers() {
                     feature: true,
                     parentIssue: true,
                 },
-                orderBy: { createdAt: 'desc' },
+                ...paginationQuery,
             });
 
-            return issues;
+            return createPaginationResponse(issues, total, paginationParams);
         } catch (error) {
             console.error('Error fetching issues:', error);
             throw error;

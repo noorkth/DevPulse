@@ -3,15 +3,46 @@ import { getPrisma } from "../prisma";
 import { validate } from '../validation/validator';
 import { DeveloperCreateSchema, DeveloperUpdateSchema, UUIDSchema } from '../validation/schemas';
 import { RateLimiter, RateLimitError, RateLimiterPresets } from '../security/rate-limiter';
+import { buildPaginationQuery, createPaginationResponse, PaginationParams } from '../utils/pagination';
 
 const readLimiter = new RateLimiter(RateLimiterPresets.READ.maxRequests, RateLimiterPresets.READ.windowMs);
 const writeLimiter = new RateLimiter(RateLimiterPresets.WRITE.maxRequests, RateLimiterPresets.WRITE.windowMs);
 
 export function setupDeveloperHandlers() {
-    // Get all developers
-    ipcMain.handle('developers:getAll', async () => {
+    // Get all developers with pagination
+    ipcMain.handle('developers:getAll', async (event, paginationParams?: PaginationParams) => {
+        const senderId = event?.sender?.id.toString() || 'unknown';
+
+        // Rate limit check
+        if (!readLimiter.isAllowed(senderId)) {
+            throw new RateLimitError('Too many requests. Please slow down.');
+        }
+
         const prisma = getPrisma();
         try {
+            // Get total count for pagination
+            const total = await prisma.developer.count();
+
+            // If no pagination requested, return all (backwards compatibility)
+            if (!paginationParams) {
+                const developers = await prisma.developer.findMany({
+                    include: {
+                        _count: {
+                            select: {
+                                issues: true,
+                                projects: true,
+                            },
+                        },
+                    },
+                    orderBy: { fullName: 'asc' },
+                });
+                return developers;
+            }
+
+            // Build pagination query
+            const paginationQuery = buildPaginationQuery(paginationParams);
+
+            // Fetch paginated results
             const developers = await prisma.developer.findMany({
                 include: {
                     _count: {
@@ -21,10 +52,10 @@ export function setupDeveloperHandlers() {
                         },
                     },
                 },
-                orderBy: { fullName: 'asc' },
+                ...paginationQuery,
             });
 
-            return developers;
+            return createPaginationResponse(developers, total, paginationParams);
         } catch (error) {
             console.error('Error fetching developers:', error);
             throw error;

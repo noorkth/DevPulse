@@ -16,6 +16,7 @@ const menuItems = [
     { path: '/performance', label: 'Performance', icon: '⚡' },
     { path: '/ml-insights', label: 'ML Insights', icon: '🤖' },
     { path: '/email-settings', label: 'Email Settings', icon: '📧' },
+    { path: '/email-scheduler', label: 'Email Scheduler', icon: '📅' },
     { path: '/settings', label: 'Settings', icon: '⚙️' },
 ];
 

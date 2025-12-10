@@ -13,6 +13,7 @@ import DeveloperPerformance from './pages/DeveloperPerformance';
 import { MLInsights } from './pages/MLInsights';
 import Settings from './pages/Settings';
 import EmailSettings from './pages/EmailSettings';
+import EmailScheduler from './pages/EmailScheduler';
 import { ToastProvider } from './components/common/Toast';
 
 function App() {
@@ -56,6 +57,7 @@ function App() {
                         <Route path="ml-insights" element={<MLInsights />} />
                         <Route path="settings" element={<Settings />} />
                         <Route path="email-settings" element={<EmailSettings />} />
+                        <Route path="email-scheduler" element={<EmailScheduler />} />
                     </Route>
                 </Routes>
             </HashRouter>

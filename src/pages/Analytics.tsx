@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../components/common/Card';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+    LineChart, Line, BarChart, Bar, AreaChart, Area,
+    XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+} from 'recharts';
 import './Analytics.css';
 
 const Analytics: React.FC = () => {
@@ -107,13 +110,23 @@ const Analytics: React.FC = () => {
                 </div>
             </Card>
 
-            {/* Recurrence Trends */}
+            {/* Recurrence Trends - Enhanced with AreaChart */}
             {recurrenceData?.monthlyTrends && (
                 <Card>
-                    <h3 className="chart-title">Recurrence Trend (Last 6 Months)</h3>
+                    <h3 className="chart-title">📈 Recurrence Trend (Last 6 Months)</h3>
                     <div className="chart-container">
                         <ResponsiveContainer width="100%" height={300}>
-                            <LineChart data={recurrenceData.monthlyTrends}>
+                            <AreaChart data={recurrenceData.monthlyTrends}>
+                                <defs>
+                                    <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0.1} />
+                                    </linearGradient>
+                                    <linearGradient id="colorRecurring" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
+                                    </linearGradient>
+                                </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                                 <XAxis dataKey="month" tick={{ fill: 'var(--color-text-secondary)' }} />
                                 <YAxis tick={{ fill: 'var(--color-text-secondary)' }} />
@@ -125,9 +138,23 @@ const Analytics: React.FC = () => {
                                     }}
                                 />
                                 <Legend />
-                                <Line type="monotone" dataKey="totalIssues" stroke="#6366f1" name="Total Issues" />
-                                <Line type="monotone" dataKey="recurringIssues" stroke="#ef4444" name="Recurring Issues" />
-                            </LineChart>
+                                <Area
+                                    type="monotone"
+                                    dataKey="totalIssues"
+                                    stroke="#6366f1"
+                                    fillOpacity={1}
+                                    fill="url(#colorTotal)"
+                                    name="Total Issues"
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="recurringIssues"
+                                    stroke="#ef4444"
+                                    fillOpacity={1}
+                                    fill="url(#colorRecurring)"
+                                    name="Recurring Issues"
+                                />
+                            </AreaChart>
                         </ResponsiveContainer>
                     </div>
                 </Card>

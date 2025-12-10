@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import Card from '../components/common/Card';
 import Button from '../components/common/Button';
-import Modal from '../components/common/Modal';
-import Input from '../components/common/Input';
 import Loading from '../components/common/Loading';
 import EmptyState from '../components/common/EmptyState';
+import Pagination from '../components/common/Pagination';
+import ProductSection from '../components/projects/ProductSection';
+import ProjectFormModal from '../components/projects/ProjectFormModal';
+import { usePagination } from '../hooks/usePagination';
 import './Projects.css';
 
 const Projects: React.FC = () => {
@@ -14,34 +15,56 @@ const Projects: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProject, setEditingProject] = useState<any | null>(null);
-    const [selectedProduct, setSelectedProduct] = useState<string>('');
-    const [isOngoing, setIsOngoing] = useState(false);
-    const [formData, setFormData] = useState({
-        name: '',
-        clientId: '',
-        projectType: '',
-        description: '',
-        startDate: '',
-        endDate: '',
-        status: 'active',
-    });
+    const [totalCount, setTotalCount] = useState(0);
+    const [hasMore, setHasMore] = useState(false);
+    const [usePaginationMode, setUsePaginationMode] = useState(false);
+
+    // Pagination hook
+    const {
+        page,
+        pageSize,
+        setPage,
+        setPageSize,
+        getPaginationParams,
+    } = usePagination({ initialPageSize: 20 });
 
     useEffect(() => {
         loadAllData();
-    }, []);
+    }, [page, pageSize, usePaginationMode]);
 
     const loadAllData = async () => {
         try {
             setLoading(true);
-            const [productsData, clientsData, projectsData] = await Promise.all([
+
+            // Always load products and clients (small datasets)
+            const [productsData, clientsData] = await Promise.all([
                 window.api.products.getAll(),
                 window.api.clients.getAll(),
-                window.api.projects.getAll(),
             ]);
 
             setProducts(productsData);
             setClients(clientsData);
-            setProjects(projectsData);
+
+            // Load projects with optional pagination
+            if (usePaginationMode) {
+                const paginationParams = getPaginationParams();
+                const result: any = await window.api.projects.getAll({}, paginationParams);
+
+                if (result && result.pagination) {
+                    setProjects(result.data);
+                    setTotalCount(result.pagination.total);
+                    setHasMore(result.pagination.hasMore);
+                } else {
+                    setProjects(Array.isArray(result) ? result : []);
+                    setTotalCount(Array.isArray(result) ? result.length : 0);
+                    setHasMore(false);
+                }
+            } else {
+                const projectsData = await window.api.projects.getAll();
+                setProjects(projectsData);
+                setTotalCount(projectsData.length);
+                setHasMore(false);
+            }
         } catch (error) {
             console.error('Error loading data:', error);
         } finally {
@@ -49,28 +72,17 @@ const Projects: React.FC = () => {
         }
     };
 
-    const handleCreateProject = async () => {
+    const handleCreateOrUpdateProject = async (data: any) => {
         try {
-            if (!formData.name || !formData.clientId || !formData.projectType || !formData.startDate) {
-                alert('Please fill in all required fields');
-                return;
-            }
-
-            // Prepare data with proper formatting
-            const submitData = {
-                ...formData,
-                startDate: new Date(formData.startDate).toISOString(),
-                endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
-            };
-
             if (editingProject) {
-                await window.api.projects.update(editingProject.id, submitData);
+                await window.api.projects.update(editingProject.id, data);
             } else {
-                await window.api.projects.create(submitData);
+                await window.api.projects.create(data);
             }
 
             setIsModalOpen(false);
-            resetForm();
+            setEditingProject(null);
+            setPage(1);
             loadAllData();
         } catch (error) {
             console.error('Error saving project:', error);
@@ -80,25 +92,6 @@ const Projects: React.FC = () => {
 
     const handleEdit = (project: any) => {
         setEditingProject(project);
-        setSelectedProduct(project.client.productId);
-        setIsOngoing(!project.endDate);
-
-        // Helper to format date for input (YYYY-MM-DD)
-        const formatDateForInput = (dateValue: any) => {
-            if (!dateValue) return '';
-            const date = typeof dateValue === 'string' ? dateValue : dateValue.toISOString();
-            return date.split('T')[0];
-        };
-
-        setFormData({
-            name: project.name,
-            clientId: project.clientId,
-            projectType: project.projectType,
-            description: project.description || '',
-            startDate: formatDateForInput(project.startDate),
-            endDate: formatDateForInput(project.endDate),
-            status: project.status,
-        });
         setIsModalOpen(true);
     };
 
@@ -113,30 +106,10 @@ const Projects: React.FC = () => {
         }
     };
 
-    const resetForm = () => {
-        setEditingProject(null);
-        setSelectedProduct('');
-        setIsOngoing(false);
-        setFormData({
-            name: '',
-            clientId: '',
-            projectType: '',
-            description: '',
-            startDate: '',
-            endDate: '',
-            status: 'active',
-        });
-    };
-
     const handleOpenModal = () => {
-        resetForm();
+        setEditingProject(null);
         setIsModalOpen(true);
     };
-
-    // Get filtered clients based on selected product
-    const filteredClients = selectedProduct
-        ? clients.filter((c) => c.productId === selectedProduct)
-        : clients;
 
     // Group projects by product
     const projectsByProduct = products.map(product => {
@@ -156,10 +129,18 @@ const Projects: React.FC = () => {
         <div className="projects-page">
             <div className="page-header">
                 <h2>Projects</h2>
-                <Button onClick={handleOpenModal}>+ New Project</Button>
+                <div className="header-actions">
+                    <Button
+                        variant={usePaginationMode ? 'primary' : 'secondary'}
+                        onClick={() => setUsePaginationMode(!usePaginationMode)}
+                        size="sm"
+                    >
+                        {usePaginationMode ? '✓ Pagination ON' : 'Pagination OFF'}
+                    </Button>
+                    <Button onClick={handleOpenModal}>+ New Project</Button>
+                </div>
             </div>
 
-            {/* Projects organized by Product */}
             {loading ? (
                 <Loading size="medium" text="Loading projects..." />
             ) : projects.length === 0 ? (
@@ -173,207 +154,41 @@ const Projects: React.FC = () => {
                     }}
                 />
             ) : (
-                projectsByProduct.map(({ product, projects: productProjects }) => (
-                    <div key={product.id} className="product-section">
-                        <div className="product-header">
-                            <h3>📦 {product.name}</h3>
-                            <span className="count-badge">{productProjects.length} projects</span>
-                        </div>
+                <>
+                    {projectsByProduct.map(({ product, projects: productProjects }) => (
+                        <ProductSection
+                            key={product.id}
+                            product={product}
+                            projects={productProjects}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                        />
+                    ))}
 
-                        {productProjects.length === 0 ? (
-                            <p className="no-data">No projects in this product yet</p>
-                        ) : (
-                            <div className="projects-grid">
-                                {productProjects.map((project) => (
-                                    <Card key={project.id}>
-                                        <div className="project-card">
-                                            <div className="project-header">
-                                                <h3>{project.name}</h3>
-                                                <span className={`status-badge status-${project.status}`}>
-                                                    {project.status}
-                                                </span>
-                                            </div>
-
-                                            <div className="project-meta">
-                                                <p className="product-name">🏢 {project.client.product.name}</p>
-                                                <p className="client-name">👤 Client: {project.client.name}</p>
-                                                <p className="project-type">🔧 {project.projectType}</p>
-                                            </div>
-
-                                            {project.description && (
-                                                <p className="project-description">{project.description}</p>
-                                            )}
-
-                                            <div className="project-stats">
-                                                <div className="stat">
-                                                    <span className="stat-label">Issues:</span>
-                                                    <span className="stat-value">{project._count?.issues || 0}</span>
-                                                </div>
-                                                <div className="stat">
-                                                    <span className="stat-label">Developers:</span>
-                                                    <span className="stat-value">{project._count?.developers || 0}</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="project-actions">
-                                                <Button variant="secondary" size="sm" onClick={() => handleEdit(project)}>
-                                                    Edit
-                                                </Button>
-                                                <Button variant="danger" size="sm" onClick={() => handleDelete(project.id)}>
-                                                    Archive
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </Card>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                ))
+                    {usePaginationMode && (
+                        <Pagination
+                            currentPage={page}
+                            totalItems={totalCount}
+                            pageSize={pageSize}
+                            hasMore={hasMore}
+                            onPageChange={setPage}
+                            onPageSizeChange={setPageSize}
+                        />
+                    )}
+                </>
             )}
 
-            {/* Create/Edit Modal */}
-            <Modal
+            <ProjectFormModal
                 isOpen={isModalOpen}
                 onClose={() => {
                     setIsModalOpen(false);
-                    resetForm();
+                    setEditingProject(null);
                 }}
-                title={editingProject ? 'Edit Project' : 'New Project'}
-                size="lg"
-                footer={
-                    <>
-                        <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button onClick={handleCreateProject}>
-                            {editingProject ? 'Update' : 'Create'}
-                        </Button>
-                    </>
-                }
-            >
-                <div className="project-form">
-                    <Input
-                        label="Project Name"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        required
-                    />
-
-                    <div className="form-group">
-                        <label className="input-label">Product *</label>
-                        <select
-                            className="input"
-                            value={selectedProduct}
-                            onChange={(e) => {
-                                setSelectedProduct(e.target.value);
-                                setFormData({ ...formData, clientId: '' }); // Reset client when product changes
-                            }}
-                            required
-                        >
-                            <option value="">Select product...</option>
-                            {products.map((p) => (
-                                <option key={p.id} value={p.id}>
-                                    {p.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="form-group">
-                        <label className="input-label">Client *</label>
-                        <select
-                            className="input"
-                            value={formData.clientId}
-                            onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
-                            required
-                            disabled={!selectedProduct}
-                        >
-                            <option value="">Select client...</option>
-                            {filteredClients.map((c) => (
-                                <option key={c.id} value={c.id}>
-                                    {c.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="form-group">
-                        <label className="input-label">Project Type *</label>
-                        <select
-                            className="input"
-                            value={formData.projectType}
-                            onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
-                            required
-                        >
-                            <option value="">Select type...</option>
-                            <option value="web">Web Application</option>
-                            <option value="mobile">Mobile App</option>
-                            <option value="desktop">Desktop App</option>
-                            <option value="api">API/Backend</option>
-                            <option value="aosp_stb">AOSP STB</option>
-                            <option value="catv_stb">CATV STB</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-
-                    <Input
-                        label="Description"
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        isTextarea
-                        rows={3}
-                    />
-
-                    <div className="form-row">
-                        <Input
-                            label="Start Date"
-                            type="date"
-                            value={formData.startDate}
-                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                            required
-                        />
-
-                        <Input
-                            label="End Date"
-                            type="date"
-                            value={formData.endDate}
-                            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                            disabled={isOngoing}
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label className="checkbox-label">
-                            <input
-                                type="checkbox"
-                                checked={isOngoing}
-                                onChange={(e) => {
-                                    setIsOngoing(e.target.checked);
-                                    if (e.target.checked) {
-                                        setFormData({ ...formData, endDate: '' });
-                                    }
-                                }}
-                            />
-                            <span>🔄 Ongoing Project (No end date)</span>
-                        </label>
-                    </div>
-
-                    <div className="form-group">
-                        <label className="input-label">Status</label>
-                        <select
-                            className="input"
-                            value={formData.status}
-                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                        >
-                            <option value="active">Active</option>
-                            <option value="completed">Completed</option>
-                            <option value="on-hold">On Hold</option>
-                            <option value="archived">Archived</option>
-                        </select>
-                    </div>
-                </div>
-            </Modal>
+                onSubmit={handleCreateOrUpdateProject}
+                project={editingProject}
+                products={products}
+                clients={clients}
+            />
         </div>
     );
 };

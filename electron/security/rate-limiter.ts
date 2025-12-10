@@ -107,15 +107,22 @@ export class RateLimiter {
     }
 }
 
+import { AppError, ErrorCode } from '../errors';
+
 /**
  * Custom error class for rate limit violations
+ * Now extends AppError with proper error code
  */
-export class RateLimitError extends Error {
+export class RateLimitError extends AppError {
     constructor(
-        message: string = 'Rate limit exceeded. Please try again later.',
+        message?: string,
         public readonly retryAfter?: number
     ) {
-        super(message);
+        super(
+            ErrorCode.RATE_LIMIT_EXCEEDED,
+            message,
+            { retryAfter }
+        );
         this.name = 'RateLimitError';
     }
 }

@@ -109,6 +109,87 @@ export const AnalyticsFilterSchema = z.object({
     timeframe: TimeframeSchema
 }).optional();
 
+// ========== Email Schedule Schemas ==========
+
+// Time format validator (HH:MM in 24-hour format)
+const TimeFormatSchema = z.string().regex(
+    /^([01]\d|2[0-3]):([0-5]\d)$/,
+    'Invalid time format. Use HH:MM (24-hour format)'
+);
+
+// Email list validator (comma-separated emails)
+const EmailListSchema = z.string()
+    .min(1, 'At least one recipient is required')
+    .refine(
+        (val) => {
+            const emails = val.split(',').map(e => e.trim()).filter(Boolean);
+            return emails.every(email => z.string().email().safeParse(email).success);
+        },
+        { message: 'Invalid email format in recipients list' }
+    );
+
+export const EmailScheduleCreateSchema = z.object({
+    name: z.string()
+        .min(1, 'Schedule name is required')
+        .max(255, 'Schedule name too long'),
+    reportType: z.enum(['performance', 'issues', 'analytics', 'summary'], {
+        message: 'Invalid report type'
+    }),
+    frequency: z.enum(['daily', 'weekly', 'monthly', 'quarterly'], {
+        message: 'Invalid frequency'
+    }),
+    dayOfWeek: z.number()
+        .int('Day of week must be an integer')
+        .min(0, 'Day of week must be 0-6')
+        .max(6, 'Day of week must be 0-6')
+        .optional()
+        .nullable(),
+    dayOfMonth: z.number()
+        .int('Day of month must be an integer')
+        .min(1, 'Day of month must be 1-31')
+        .max(31, 'Day of month must be 1-31')
+        .optional()
+        .nullable(),
+    time: TimeFormatSchema,
+    recipients: EmailListSchema,
+    ccList: z.string()
+        .refine(
+            (val) => {
+                if (!val || val.trim() === '') return true; // Optional
+                const emails = val.split(',').map(e => e.trim()).filter(Boolean);
+                return emails.every(email => z.string().email().safeParse(email).success);
+            },
+            { message: 'Invalid email format in CC list' }
+        )
+        .optional()
+        .nullable(),
+    enabled: z.boolean().default(true)
+}).refine(
+    (data) => {
+        // Weekly schedules must have dayOfWeek
+        if (data.frequency === 'weekly' && (data.dayOfWeek === null || data.dayOfWeek === undefined)) {
+            return false;
+        }
+        // Monthly/quarterly schedules must have dayOfMonth
+        if ((data.frequency === 'monthly' || data.frequency === 'quarterly') &&
+            (data.dayOfMonth === null || data.dayOfMonth === undefined)) {
+            return false;
+        }
+        return true;
+    },
+    {
+        message: 'Weekly schedules require dayOfWeek, monthly/quarterly require dayOfMonth'
+    }
+);
+
+export const EmailScheduleUpdateSchema = EmailScheduleCreateSchema.partial();
+
+export const EmailScheduleFilterSchema = z.object({
+    enabled: z.boolean().optional(),
+    reportType: z.enum(['performance', 'issues', 'analytics', 'summary']).optional(),
+    frequency: z.enum(['daily', 'weekly', 'monthly', 'quarterly']).optional()
+}).optional();
+
 // ========== Common Validators ==========
 
 export const UUIDSchema = z.string().uuid('Invalid ID format');
@@ -140,3 +221,7 @@ export type IssueFilter = z.infer<typeof IssueFilterSchema>;
 
 export type Timeframe = z.infer<typeof TimeframeSchema>;
 export type AnalyticsFilter = z.infer<typeof AnalyticsFilterSchema>;
+
+export type EmailScheduleCreate = z.infer<typeof EmailScheduleCreateSchema>;
+export type EmailScheduleUpdate = z.infer<typeof EmailScheduleUpdateSchema>;
+export type EmailScheduleFilter = z.infer<typeof EmailScheduleFilterSchema>;

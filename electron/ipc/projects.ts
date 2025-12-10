@@ -8,6 +8,7 @@ import {
     UUIDSchema
 } from '../validation/schemas';
 import { RateLimiter, RateLimitError, RateLimiterPresets } from '../security/rate-limiter';
+import { buildPaginationQuery, createPaginationResponse, PaginationParams } from '../utils/pagination';
 
 // Rate limiters for different operation types
 const readLimiter = new RateLimiter(RateLimiterPresets.READ.maxRequests, RateLimiterPresets.READ.windowMs);
@@ -16,8 +17,8 @@ const writeLimiter = new RateLimiter(RateLimiterPresets.WRITE.maxRequests, RateL
 // Using shared getPrisma()
 
 export function setupProjectHandlers() {
-    // Get all projects with optional filters
-    ipcMain.handle('projects:getAll', async (event, filters?: any) => {
+    // Get all projects with optional filters and pagination
+    ipcMain.handle('projects:getAll', async (event, filters?: any, paginationParams?: PaginationParams) => {
         const senderId = event.sender.id.toString();
 
         // Rate limit check
@@ -40,6 +41,35 @@ export function setupProjectHandlers() {
                 where.clientId = validatedFilters.clientId;
             }
 
+            // Get total count for pagination
+            const total = await prisma.project.count({ where });
+
+            // If no pagination requested, return all (backwards compatibility)
+            if (!paginationParams) {
+                const projects = await prisma.project.findMany({
+                    where,
+                    include: {
+                        client: {
+                            include: {
+                                product: true,
+                            },
+                        },
+                        _count: {
+                            select: {
+                                issues: true,
+                                developers: true,
+                            },
+                        },
+                    },
+                    orderBy: { createdAt: 'desc' },
+                });
+                return projects;
+            }
+
+            // Build pagination query
+            const paginationQuery = buildPaginationQuery(paginationParams);
+
+            // Fetch paginated results
             const projects = await prisma.project.findMany({
                 where,
                 include: {
@@ -55,10 +85,10 @@ export function setupProjectHandlers() {
                         },
                     },
                 },
-                orderBy: { createdAt: 'desc' },
+                ...paginationQuery,
             });
 
-            return projects;
+            return createPaginationResponse(projects, total, paginationParams);
         } catch (error) {
             console.error('Error fetching projects:', error);
             throw error;

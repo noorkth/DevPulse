@@ -149,6 +149,21 @@ const api = {
     app: {
         getVersion: () => ipcRenderer.invoke('app:getVersion'),
     },
+
+    // Search
+    search: {
+        global: (query: string, filters?: any) => ipcRenderer.invoke('search:global', query, filters),
+    },
+
+    // Email Schedules
+    emailSchedules: {
+        getAll: () => ipcRenderer.invoke('email-schedules:getAll'),
+        getById: (id: string) => ipcRenderer.invoke('email-schedules:getById', id),
+        create: (data: any) => ipcRenderer.invoke('email-schedules:create', data),
+        update: (id: string, data: any) => ipcRenderer.invoke('email-schedules:update', id, data),
+        delete: (id: string) => ipcRenderer.invoke('email-schedules:delete', id),
+        toggle: (id: string, enabled: boolean) => ipcRenderer.invoke('email-schedules:toggle', id, enabled),
+    },
 };
 
 // Expose API to renderer

@@ -13,6 +13,8 @@ import { setupPerformanceHandlers } from './ipc/performance';
 import { setupGoalsHandlers } from './ipc/goals';
 import { setupEmailHandlers } from './email/handlers';
 import { initializeEmailScheduler } from './email/scheduler';
+import { setupSearchHandlers } from './ipc/search';
+import { setupEmailScheduleHandlers } from './ipc/email-schedules';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -143,7 +145,9 @@ app.whenReady().then(async () => {
     setupPerformanceHandlers();
     setupGoalsHandlers();
     setupEmailHandlers();
-    console.log('🤖 ML handlers registered');
+    setupSearchHandlers();
+    setupEmailScheduleHandlers();
+    console.log('🔍 Search handlers registered');
 
     // Initialize email scheduler
     initializeEmailScheduler();
