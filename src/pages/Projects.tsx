@@ -48,10 +48,10 @@ const Projects: React.FC = () => {
             // Load projects with optional pagination
             if (usePaginationMode) {
                 const paginationParams = getPaginationParams();
-                const result: any = await window.api.projects.getAll({}, paginationParams);
+                const result: any = await window.api.projects.getAll(paginationParams);
 
                 if (result && result.pagination) {
-                    setProjects(result.data);
+                    setProjects(Array.isArray(result.data) ? result.data : []);
                     setTotalCount(result.pagination.total);
                     setHasMore(result.pagination.hasMore);
                 } else {
@@ -61,8 +61,8 @@ const Projects: React.FC = () => {
                 }
             } else {
                 const projectsData = await window.api.projects.getAll();
-                setProjects(projectsData);
-                setTotalCount(projectsData.length);
+                setProjects(Array.isArray(projectsData) ? projectsData : []);
+                setTotalCount(Array.isArray(projectsData) ? projectsData.length : 0);
                 setHasMore(false);
             }
         } catch (error) {
