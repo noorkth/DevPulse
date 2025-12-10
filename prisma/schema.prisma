@@ -151,9 +151,12 @@ model Issue {
   @@index([projectId])
   @@index([assignedToId])
   @@index([featureId])
-  @@index([status])
-  @@index([severity])
-  @@index([isRecurring])
+  @@index([status, severity]) // Composite index for common filters
+  @@index([assignedToId, status]) // Developer's active issues
+  @@index([projectId, status]) // Project's open issues
+  @@index([createdAt]) // Time-based queries
+  @@index([resolvedAt]) // Analytics queries
+  @@index([isRecurring]) // Hotspot detection
 }
 
 // Developer Goal Model for performance tracking

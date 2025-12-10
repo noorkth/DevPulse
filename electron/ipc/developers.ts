@@ -3,7 +3,8 @@ import { getPrisma } from "../prisma";
 import { validate } from '../validation/validator';
 import { DeveloperCreateSchema, DeveloperUpdateSchema, UUIDSchema } from '../validation/schemas';
 import { RateLimiter, RateLimitError, RateLimiterPresets } from '../security/rate-limiter';
-import { buildPaginationQuery, createPaginationResponse, PaginationParams } from '../utils/pagination';
+import { CacheManager } from '../cache/cache-manager';
+import { normalizePaginationParams, buildPaginationQuery, createPaginationResponse, PaginationParams } from '../utils/pagination';
 
 const readLimiter = new RateLimiter(RateLimiterPresets.READ.maxRequests, RateLimiterPresets.READ.windowMs);
 const writeLimiter = new RateLimiter(RateLimiterPresets.WRITE.maxRequests, RateLimiterPresets.WRITE.windowMs);
@@ -11,20 +12,27 @@ const writeLimiter = new RateLimiter(RateLimiterPresets.WRITE.maxRequests, RateL
 export function setupDeveloperHandlers() {
     // Get all developers with pagination
     ipcMain.handle('developers:getAll', async (event, paginationParams?: PaginationParams) => {
-        const senderId = event?.sender?.id.toString() || 'unknown';
+        const senderId = event.sender.id.toString();
 
-        // Rate limit check
         if (!readLimiter.isAllowed(senderId)) {
             throw new RateLimitError('Too many requests. Please slow down.');
         }
 
         const prisma = getPrisma();
         try {
-            // Get total count for pagination
-            const total = await prisma.developer.count();
+            // Generate cache key
+            const cacheKey = CacheManager.generateKey('developers:getAll', paginationParams);
 
-            // If no pagination requested, return all (backwards compatibility)
-            if (!paginationParams) {
+            // Check cache first
+            const cached = CacheManager.get<any>('list', cacheKey);
+            if (cached) {
+                return cached;
+            }
+
+            const params = normalizePaginationParams(paginationParams);
+
+            if (!params) {
+                // Return all developers
                 const developers = await prisma.developer.findMany({
                     include: {
                         _count: {
@@ -36,26 +44,38 @@ export function setupDeveloperHandlers() {
                     },
                     orderBy: { fullName: 'asc' },
                 });
+
+                // Cache the result
+                CacheManager.set('list', cacheKey, developers);
                 return developers;
             }
 
             // Build pagination query
-            const paginationQuery = buildPaginationQuery(paginationParams);
+            const query = buildPaginationQuery(params);
+            const where = {}; // Add filters if needed
 
-            // Fetch paginated results
-            const developers = await prisma.developer.findMany({
-                include: {
-                    _count: {
-                        select: {
-                            issues: true,
-                            projects: true,
+            const [developers, total] = await Promise.all([
+                prisma.developer.findMany({
+                    ...query,
+                    where,
+                    include: {
+                        _count: {
+                            select: {
+                                issues: true,
+                                projects: true,
+                            },
                         },
                     },
-                },
-                ...paginationQuery,
-            });
+                    orderBy: { fullName: 'asc' },
+                }),
+                prisma.developer.count({ where }),
+            ]);
 
-            return createPaginationResponse(developers, total, paginationParams);
+            const result = createPaginationResponse(developers, total, params);
+
+            // Cache the result
+            CacheManager.set('list', cacheKey, result);
+            return result;
         } catch (error) {
             console.error('Error fetching developers:', error);
             throw error;
@@ -163,15 +183,14 @@ export function setupDeveloperHandlers() {
     ipcMain.handle('developers:update', async (_, id: string, data: any) => {
         const prisma = getPrisma();
         try {
-            const developer = await prisma.developer.update({
+            const updated = await prisma.developer.update({
                 where: { id },
-                data: {
-                    fullName: data.fullName,
-                    email: data.email,
-                    skills: data.skills ? JSON.stringify(data.skills) : undefined,
-                    seniorityLevel: data.seniorityLevel,
-                },
+                data,
             });
+
+            // Invalidate caches
+            CacheManager.invalidatePattern('list', /^developers:getAll/);
+            CacheManager.delete('ipc', `developer:${id}`);
 
             // Update project assignments if provided
             if (data.projectIds) {
@@ -193,7 +212,7 @@ export function setupDeveloperHandlers() {
                 );
             }
 
-            return developer;
+            return updated;
         } catch (error) {
             console.error('Error updating developer:', error);
             throw error;
@@ -208,7 +227,11 @@ export function setupDeveloperHandlers() {
                 where: { id },
             });
 
-            return { success: true };
+            // Invalidate caches
+            CacheManager.invalidatePattern('list', /^developers:getAll/);
+            CacheManager.delete('ipc', `developer:${id}`);
+
+            return { success: true, message: 'Developer deleted successfully' };
         } catch (error) {
             console.error('Error deleting developer:', error);
             throw error;

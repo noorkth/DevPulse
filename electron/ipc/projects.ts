@@ -8,7 +8,8 @@ import {
     UUIDSchema
 } from '../validation/schemas';
 import { RateLimiter, RateLimitError, RateLimiterPresets } from '../security/rate-limiter';
-import { buildPaginationQuery, createPaginationResponse, PaginationParams } from '../utils/pagination';
+import { CacheManager } from '../cache/cache-manager';
+import { normalizePaginationParams, buildPaginationQuery, createPaginationResponse, PaginationParams } from '../utils/pagination';
 
 // Rate limiters for different operation types
 const readLimiter = new RateLimiter(RateLimiterPresets.READ.maxRequests, RateLimiterPresets.READ.windowMs);
@@ -28,24 +29,20 @@ export function setupProjectHandlers() {
 
         const prisma = getPrisma();
         try {
-            // Validate filters
-            const validatedFilters = validate(ProjectFilterSchema, filters);
+            // Generate cache key
+            const cacheKey = CacheManager.generateKey('projects:getAll', { filters, paginationParams });
 
-            const where: any = {};
-
-            if (validatedFilters?.status) {
-                where.status = validatedFilters.status;
+            // Check cache
+            const cached = CacheManager.get<any>('list', cacheKey);
+            if (cached) {
+                return cached;
             }
 
-            if (validatedFilters?.clientId) {
-                where.clientId = validatedFilters.clientId;
-            }
-
-            // Get total count for pagination
-            const total = await prisma.project.count({ where });
+            const params = normalizePaginationParams(paginationParams);
+            const where = filters || {};
 
             // If no pagination requested, return all (backwards compatibility)
-            if (!paginationParams) {
+            if (!params) {
                 const projects = await prisma.project.findMany({
                     where,
                     include: {
@@ -63,32 +60,40 @@ export function setupProjectHandlers() {
                     },
                     orderBy: { createdAt: 'desc' },
                 });
+
+                CacheManager.set('list', cacheKey, projects);
                 return projects;
             }
 
             // Build pagination query
-            const paginationQuery = buildPaginationQuery(paginationParams);
+            const paginationQuery = buildPaginationQuery(params);
 
             // Fetch paginated results
-            const projects = await prisma.project.findMany({
-                where,
-                include: {
-                    client: {
-                        include: {
-                            product: true,
+            const [projects, total] = await Promise.all([
+                prisma.project.findMany({
+                    ...paginationQuery,
+                    where,
+                    include: {
+                        client: {
+                            include: {
+                                product: true,
+                            },
+                        },
+                        _count: {
+                            select: {
+                                issues: true,
+                                developers: true,
+                            },
                         },
                     },
-                    _count: {
-                        select: {
-                            issues: true,
-                            developers: true,
-                        },
-                    },
-                },
-                ...paginationQuery,
-            });
+                    orderBy: { createdAt: 'desc' },
+                }),
+                prisma.project.count({ where }),
+            ]);
 
-            return createPaginationResponse(projects, total, paginationParams);
+            const result = createPaginationResponse(projects, total, params);
+            CacheManager.set('list', cacheKey, result);
+            return result;
         } catch (error) {
             console.error('Error fetching projects:', error);
             throw error;

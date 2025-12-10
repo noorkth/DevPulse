@@ -9,6 +9,7 @@ import {
     UUIDSchema
 } from '../validation/schemas';
 import { RateLimiter, RateLimitError, RateLimiterPresets } from '../security/rate-limiter';
+import { CacheManager } from '../cache/cache-manager';
 import { buildPaginationQuery, createPaginationResponse, PaginationParams } from '../utils/pagination';
 
 // Rate limiters for different operation types
@@ -26,6 +27,15 @@ export function setupIssueHandlers() {
 
         const prisma = getPrisma();
         try {
+            // Generate cache key
+            const cacheKey = CacheManager.generateKey('issues:getAll', { filters, paginationParams });
+
+            // Check cache
+            const cached = CacheManager.get<any>('list', cacheKey);
+            if (cached) {
+                return cached;
+            }
+
             // Only validate filters if provided
             const validatedFilters = filters ? validate(IssueFilterSchema, filters) : null;
             const where: any = {};
@@ -51,6 +61,8 @@ export function setupIssueHandlers() {
                     },
                     orderBy: { createdAt: 'desc' },
                 });
+
+                CacheManager.set('list', cacheKey, issues);
                 return issues;
             }
 
@@ -69,7 +81,9 @@ export function setupIssueHandlers() {
                 ...paginationQuery,
             });
 
-            return createPaginationResponse(issues, total, paginationParams);
+            const result = createPaginationResponse(issues, total, paginationParams);
+            CacheManager.set('list', cacheKey, result);
+            return result;
         } catch (error) {
             console.error('Error fetching issues:', error);
             throw error;

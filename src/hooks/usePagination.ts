@@ -1,9 +1,11 @@
 import { useState, useCallback } from 'react';
 
-export interface PaginationState {
-    page: number;
-    pageSize: number;
-    cursor: string | null;
+/**
+ * Pagination hook configuration options
+ */
+interface PaginationOptions {
+    initialPage?: number;
+    initialPageSize?: number;
 }
 
 export interface UsePaginationResult {

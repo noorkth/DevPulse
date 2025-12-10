@@ -32,11 +32,13 @@
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "^5.7.1",
+    "@types/react-window": "^1.8.8",
     "adm-zip": "^0.5.16",
     "date-fns": "^3.6.0",
     "electron-store": "^8.1.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.4",
+    "lru-cache": "^11.2.4",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.11",
     "papaparse": "^5.5.3",
@@ -44,6 +46,7 @@
     "react-date-range": "^2.0.1",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.21.1",
+    "react-window": "^2.2.3",
     "recharts": "^2.15.4",
     "simple-statistics": "^7.8.8",
     "zod": "^4.1.13"
