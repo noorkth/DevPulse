@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
@@ -40,7 +40,7 @@ function App() {
 
     return (
         <ToastProvider>
-            <BrowserRouter>
+            <HashRouter>
                 <Routes>
                     <Route path="/" element={<Layout />}>
                         <Route index element={<Navigate to="/dashboard" replace />} />
@@ -58,7 +58,7 @@ function App() {
                         <Route path="email-settings" element={<EmailSettings />} />
                     </Route>
                 </Routes>
-            </BrowserRouter>
+            </HashRouter>
         </ToastProvider>
     );
 }

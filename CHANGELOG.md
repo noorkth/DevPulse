@@ -2,6 +2,40 @@
 
 All notable changes to DevPulse will be documented in this file.
 
+## [3.2.0] - 2024-12-10
+
+### 🔥 Critical Fixes
+- **Fixed blank screen in packaged application**
+  - Replaced `BrowserRouter` with `HashRouter` for Electron compatibility
+  - `BrowserRouter` relies on HTML5 History API which doesn't work with `file://` protocol
+  - All routes now use hash-based navigation (e.g., `#/dashboard`)
+  - Packaged app now loads correctly on first launch
+
+### 🔧 Configuration Improvements
+- **Vite Configuration**
+  - Added `base: './'` to ensure relative asset paths for Electron
+  - Ensures compatibility with both development and production modes
+  
+- **Electron Security & Compatibility**
+  - Disabled sandbox mode to prevent preload script conflicts
+  - Relaxed Content Security Policy to allow React inline scripts
+  - Enhanced renderer console logging for better debugging
+  - Improved error reporting for production builds
+
+### 📝 Technical Details
+- Hash-based routing uses URL fragments (e.g., `file:///.../index.html#/dashboard`)
+- Transparent to end users, no functionality changes
+- Development mode continues to work with Vite dev server
+- All existing routes and navigation remain functional
+
+### ⚠️ Breaking Changes
+- URL structure changed from path-based to hash-based routing
+  - Before: `/dashboard` (dev), `file://.../dashboard` (prod - broken)
+  - After: `#/dashboard` (works in both dev and prod)
+- No impact on user experience or functionality
+
+---
+
 ## [3.1.0] - 2024-12-10
 
 ### 🎉 Added

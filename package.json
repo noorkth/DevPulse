@@ -1,7 +1,7 @@
 {
   "name": "devpulse",
   "private": true,
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Developer Productivity & Issue Intelligence Desktop App with AI-Powered Analytics",
   "main": "dist-electron/main.js",
   "scripts": {

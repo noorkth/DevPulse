@@ -35,7 +35,7 @@ const createWindow = () => {
             preload: preloadPath,
             contextIsolation: true,
             nodeIntegration: false,
-            sandbox: true,  // ✅ Enable sandbox for better security
+            sandbox: false,  // Disabled to prevent preload/IPC issues, contextIsolation still enabled
             webSecurity: true,  // ✅ Ensure web security
             allowRunningInsecureContent: false  // ✅ Block insecure content
         }
@@ -54,13 +54,13 @@ const createWindow = () => {
             "font-src 'self' data:; " +
             "connect-src 'self' http://localhost:* ws://localhost:*";
 
-        // Strict CSP for production
+        // Strict CSP for production (relaxed to allow React inline scripts)
         const prodCSP =
             "default-src 'self'; " +
-            "script-src 'self'; " +
+            "script-src 'self' 'unsafe-inline'; " +
             "style-src 'self' 'unsafe-inline'; " +
-            "img-src 'self' data:; " +
-            "font-src 'self'; " +
+            "img-src 'self' data: blob:; " +
+            "font-src 'self' data:; " +
             "connect-src 'self'";
 
         callback({
@@ -87,8 +87,19 @@ const createWindow = () => {
         }
     } else {
         console.log('📁 Loading from dist folder');
-        mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+        const indexPath = path.join(__dirname, '../dist/index.html');
+        console.log('📁 Full index.html path:', indexPath);
+        mainWindow.loadFile(indexPath);
     }
+
+    // Log renderer console messages for debugging
+    mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+        console.log(`[Renderer Console] [${level}] ${message} (${sourceId}:${line})`);
+    });
+
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+        console.error(`❌ Failed to load: ${errorCode} - ${errorDescription}`);
+    });
 
     // Handle window close
     mainWindow.on('closed', () => {
