@@ -56,11 +56,15 @@ const Issues: React.FC = () => {
                 window.api.clients.getAll(),
             ]);
 
-            setProjects(projectsData);
+            // Ensure arrays - handle both array and PaginationResult responses
+            setProjects(Array.isArray(projectsData) ? projectsData : []);
+
             // Filter out managers - only show developers
-            const onlyDevelopers = developersData.filter((dev: any) => dev.role === 'developer');
+            const devArray = Array.isArray(developersData) ? developersData : [];
+            const onlyDevelopers = devArray.filter((dev: any) => dev.role === 'developer');
             setDevelopers(onlyDevelopers);
-            setClients(clientsData);
+
+            setClients(Array.isArray(clientsData) ? clientsData : []);
         } catch (error) {
             console.error('Error loading supporting data:', error);
         }
@@ -75,7 +79,7 @@ const Issues: React.FC = () => {
 
                 // Backend returns PaginationResult when pagination is used
                 if (result && result.pagination) {
-                    setIssues(result.data);
+                    setIssues(Array.isArray(result.data) ? result.data : []);
                     setTotalCount(result.pagination.total);
                     setHasMore(result.pagination.hasMore);
                 } else {
@@ -87,8 +91,8 @@ const Issues: React.FC = () => {
             } else {
                 // Load all (backwards compatible)
                 const issuesData = await window.api.issues.getAll();
-                setIssues(issuesData);
-                setTotalCount(issuesData.length);
+                setIssues(Array.isArray(issuesData) ? issuesData : []);
+                setTotalCount(Array.isArray(issuesData) ? issuesData.length : 0);
                 setHasMore(false);
             }
         } catch (error) {
