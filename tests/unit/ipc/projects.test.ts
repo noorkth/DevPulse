@@ -51,7 +51,7 @@ describe('Projects IPC Handlers', () => {
             const mockEvent = { sender: { id: 1 } };
             const result = await mockIpcMain['projects:getAll'](mockEvent);
 
-            expect(result).toEqual(mockProjects);
+            expect(result.data).toEqual(mockProjects);
             expect(mockPrisma.project.findMany).toHaveBeenCalled();
         });
 
@@ -87,9 +87,9 @@ describe('Projects IPC Handlers', () => {
         it('should create a new project', async () => {
             const newProject = {
                 name: 'New Project',
-                clientId: 'c1',
+                clientId: '123e4567-e89b-12d3-a456-426614174000', // Valid UUID
                 projectType: 'web',
-                startDate: '2024-01-01',
+                startDate: '2024-01-01T00:00:00Z', // Valid ISO date
                 status: 'active',
             };
 

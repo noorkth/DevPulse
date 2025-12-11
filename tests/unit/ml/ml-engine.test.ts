@@ -1,9 +1,10 @@
 import { getPrisma } from '../../../electron/prisma';
 
 // Mock the ML classes
-jest.mock('../../../electron/ml/prediction-engine');
-jest.mock('../../../electron/ml/developer-matcher');
-jest.mock('../../../electron/ml/hotspot-detector');
+// Mock the ML classes - REMOVED because we are testing them!
+// jest.mock('../../../electron/ml/prediction-engine');
+// jest.mock('../../../electron/ml/developer-matcher');
+// jest.mock('../../../electron/ml/hotspot-detector');
 jest.mock('../../../electron/prisma');
 
 const mockPrisma = {

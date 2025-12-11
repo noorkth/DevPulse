@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import IssueCard from '../../../src/components/issues/IssueCard';
+import IssueCard from '../../src/components/issues/IssueCard';
 
 describe('IssueCard Component', () => {
     const mockIssue = {

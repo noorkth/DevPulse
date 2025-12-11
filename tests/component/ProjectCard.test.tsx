@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ProjectCard from '../../../src/components/projects/ProjectCard';
+import ProjectCard from '../../src/components/projects/ProjectCard';
 
 describe('ProjectCard Component', () => {
     const mockProject = {
@@ -36,7 +36,7 @@ describe('ProjectCard Component', () => {
         expect(screen.getByText('active')).toBeInTheDocument();
         expect(screen.getByText(/Test Product/i)).toBeInTheDocument();
         expect(screen.getByText(/Test Client/i)).toBeInTheDocument();
-        expect(screen.getByText('web')).toBeInTheDocument();
+        expect(screen.getByText(/web/i)).toBeInTheDocument();
     });
 
     it('should display project description when provided', () => {

@@ -2,9 +2,30 @@ import { setupIssueHandlers } from '../../../electron/ipc/issues';
 import { getPrisma } from '../../../electron/prisma';
 import { RateLimitError } from '../../../electron/security/rate-limiter';
 
-// Mock dependencies
+// 1. Define mocks
+jest.mock('electron', () => ({
+    ipcMain: {
+        handle: jest.fn(),
+    },
+}));
+
 jest.mock('../../../electron/prisma');
-jest.mock('../../../electron/security/rate-limiter');
+
+// Mock RateLimiter but keep RateLimitError real
+jest.mock('../../../electron/security/rate-limiter', () => {
+    const actual = jest.requireActual('../../../electron/security/rate-limiter');
+    const sharedIsAllowed = jest.fn().mockReturnValue(true);
+    const MockRateLimiter = jest.fn().mockImplementation(() => ({
+        isAllowed: sharedIsAllowed,
+    }));
+    // Attach shared mock to the class so tests can access it
+    (MockRateLimiter as any).__sharedIsAllowed = sharedIsAllowed;
+
+    return {
+        ...actual,
+        RateLimiter: MockRateLimiter,
+    };
+});
 
 const mockPrisma = {
     issue: {
@@ -19,27 +40,22 @@ const mockPrisma = {
 (getPrisma as jest.Mock).mockReturnValue(mockPrisma);
 
 describe('Issues IPC Handlers', () => {
-    let mockIpcMain: any;
-
     beforeEach(() => {
         jest.clearAllMocks();
 
-        // Mock ipcMain
-        mockIpcMain = {
-            handle: jest.fn((channel, handler) => {
-                mockIpcMain[channel] = handler;
-            }),
-        };
+        const mockIpcMain = require('electron').ipcMain;
 
-        // Mock electron
-        jest.mock('electron', () => ({
-            ipcMain: mockIpcMain,
-        }));
+        // Implement handle to store handlers on the mock object itself for easy access in tests
+        mockIpcMain.handle.mockImplementation((channel: string, handler: any) => {
+            mockIpcMain[channel] = handler;
+        });
 
-        // Setup handlers
-        require('electron').ipcMain = mockIpcMain;
+        // Re-run setup to register handlers with our fresh mock implementation
         setupIssueHandlers();
     });
+
+    // Helper to get the current mock state
+    const getMockIpcMain = () => require('electron').ipcMain;
 
     describe('issues:getAll', () => {
         it('should return all issues without pagination', async () => {
@@ -63,7 +79,7 @@ describe('Issues IPC Handlers', () => {
             mockPrisma.issue.findMany.mockResolvedValue(mockIssues);
 
             const mockEvent = { sender: { id: 1 } };
-            const result = await mockIpcMain['issues:getAll'](mockEvent);
+            const result = await getMockIpcMain()['issues:getAll'](mockEvent);
 
             expect(result).toEqual(mockIssues);
             expect(mockPrisma.issue.findMany).toHaveBeenCalled();
@@ -80,7 +96,7 @@ describe('Issues IPC Handlers', () => {
 
             const mockEvent = { sender: { id: 1 } };
             const paginationParams = { limit: 20 };
-            const result = await mockIpcMain['issues:getAll'](mockEvent, {}, paginationParams);
+            const result = await getMockIpcMain()['issues:getAll'](mockEvent, {}, paginationParams);
 
             expect(result).toHaveProperty('data');
             expect(result).toHaveProperty('pagination');
@@ -98,7 +114,7 @@ describe('Issues IPC Handlers', () => {
             mockPrisma.issue.findMany.mockResolvedValue([]);
 
             const mockEvent = { sender: { id: 1 } };
-            await mockIpcMain['issues:getAll'](mockEvent, filters);
+            await getMockIpcMain()['issues:getAll'](mockEvent, filters);
 
             expect(mockPrisma.issue.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -113,18 +129,18 @@ describe('Issues IPC Handlers', () => {
         it('should throw RateLimitError when rate limit exceeded', async () => {
             const mockEvent = { sender: { id: 1 } };
 
-            // Mock rate limiter to deny request
+            // Use the shared mock to force failure
             const { RateLimiter } = require('../../../electron/security/rate-limiter');
-            RateLimiter.prototype.isAllowed = jest.fn().mockReturnValue(false);
+            RateLimiter.__sharedIsAllowed.mockReturnValueOnce(false);
 
-            await expect(mockIpcMain['issues:getAll'](mockEvent)).rejects.toThrow(RateLimitError);
+            await expect(getMockIpcMain()['issues:getAll'](mockEvent)).rejects.toThrow(RateLimitError);
         });
     });
 
     describe('issues:getById', () => {
         it('should return issue by id', async () => {
             const mockIssue = {
-                id: '123',
+                id: '123e4567-e89b-12d3-a456-426614174000',
                 title: 'Test Issue',
                 severity: 'high',
                 project: { name: 'Test Project' },
@@ -134,12 +150,12 @@ describe('Issues IPC Handlers', () => {
             mockPrisma.issue.findUnique.mockResolvedValue(mockIssue);
 
             const mockEvent = { sender: { id: 1 } };
-            const result = await mockIpcMain['issues:getById'](mockEvent, '123');
+            const result = await getMockIpcMain()['issues:getById'](mockEvent, '123e4567-e89b-12d3-a456-426614174000');
 
             expect(result).toEqual(mockIssue);
             expect(mockPrisma.issue.findUnique).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    where: { id: '123' },
+                    where: { id: '123e4567-e89b-12d3-a456-426614174000' },
                 })
             );
         });
@@ -147,7 +163,7 @@ describe('Issues IPC Handlers', () => {
         it('should throw error for invalid UUID', async () => {
             const mockEvent = { sender: { id: 1 } };
 
-            await expect(mockIpcMain['issues:getById'](mockEvent, 'invalid')).rejects.toThrow();
+            await expect(getMockIpcMain()['issues:getById'](mockEvent, 'invalid')).rejects.toThrow();
         });
     });
 
@@ -157,19 +173,19 @@ describe('Issues IPC Handlers', () => {
                 title: 'New Issue',
                 description: 'Description',
                 severity: 'high',
-                projectId: 'p1',
-                assignedToId: 'd1',
+                projectId: '123e4567-e89b-12d3-a456-426614174000',
+                assignedToId: '123e4567-e89b-12d3-a456-426614174001',
             };
 
             const createdIssue = {
-                id: 'new-id',
+                id: '123e4567-e89b-12d3-a456-426614174002',
                 ...newIssueData,
             };
 
             mockPrisma.issue.create.mockResolvedValue(createdIssue);
 
             const mockEvent = { sender: { id: 1 } };
-            const result = await mockIpcMain['issues:create'](mockEvent, newIssueData);
+            const result = await getMockIpcMain()['issues:create'](mockEvent, newIssueData);
 
             expect(result).toEqual(createdIssue);
             expect(mockPrisma.issue.create).toHaveBeenCalledWith(
@@ -177,6 +193,8 @@ describe('Issues IPC Handlers', () => {
                     data: expect.objectContaining({
                         title: 'New Issue',
                         severity: 'high',
+                        project: { connect: { id: '123e4567-e89b-12d3-a456-426614174000' } },
+                        assignedTo: { connect: { id: '123e4567-e89b-12d3-a456-426614174001' } }
                     }),
                 })
             );
@@ -186,11 +204,12 @@ describe('Issues IPC Handlers', () => {
             const invalidData = {
                 title: '', // Invalid - empty title
                 severity: 'invalid', // Invalid severity
+                projectId: '123e4567-e89b-12d3-a456-426614174000'
             };
 
             const mockEvent = { sender: { id: 1 } };
 
-            await expect(mockIpcMain['issues:create'](mockEvent, invalidData)).rejects.toThrow();
+            await expect(getMockIpcMain()['issues:create'](mockEvent, invalidData)).rejects.toThrow();
         });
     });
 
@@ -202,20 +221,23 @@ describe('Issues IPC Handlers', () => {
             };
 
             const updatedIssue = {
-                id: '123',
+                id: '123e4567-e89b-12d3-a456-426614174003',
                 ...updateData,
             };
 
             mockPrisma.issue.update.mockResolvedValue(updatedIssue);
 
             const mockEvent = { sender: { id: 1 } };
-            const result = await mockIpcMain['issues:update'](mockEvent, '123', updateData);
+            const result = await getMockIpcMain()['issues:update'](mockEvent, '123e4567-e89b-12d3-a456-426614174003', updateData);
 
             expect(result).toEqual(updatedIssue);
             expect(mockPrisma.issue.update).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    where: { id: '123' },
-                    data: expect.objectContaining(updateData),
+                    where: { id: '123e4567-e89b-12d3-a456-426614174003' },
+                    data: expect.objectContaining({
+                        title: 'Updated Title',
+                        severity: 'critical'
+                    }),
                 })
             );
         });

@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import Pagination from '../../../src/components/common/Pagination';
+import Pagination from '../../src/components/common/Pagination';
 
 describe('Pagination Component', () => {
     const defaultProps = {
@@ -21,9 +21,9 @@ describe('Pagination Component', () => {
         render(<Pagination {...defaultProps} />);
 
         expect(screen.getByText(/Showing/i)).toBeInTheDocument();
-        expect(screen.getByText(/1/)).toBeInTheDocument();
-        expect(screen.getByText(/20/)).toBeInTheDocument();
-        expect(screen.getByText(/100/)).toBeInTheDocument();
+        expect(screen.getAllByText(/1/).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/20/).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/100/).length).toBeGreaterThan(0);
     });
 
     it('should render page navigation buttons', () => {
@@ -83,8 +83,7 @@ describe('Pagination Component', () => {
         render(<Pagination {...defaultProps} onPageSizeChange={onPageSizeChange} />);
 
         const select = screen.getByLabelText(/Items per page/i);
-        select.dispatchEvent(new Event('change', { bubbles: true }));
-        select.value = '50';
+        fireEvent.change(select, { target: { value: '50' } });
 
         // Would need user-event for better simulation
         // This is a simplified test

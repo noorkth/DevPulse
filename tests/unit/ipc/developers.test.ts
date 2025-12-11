@@ -49,7 +49,7 @@ describe('Developers IPC Handlers', () => {
             const mockEvent = { sender: { id: 1 } };
             const result = await mockIpcMain['developers:getAll'](mockEvent);
 
-            expect(result).toEqual(mockDevelopers);
+            expect(result.data).toEqual(mockDevelopers);
         });
 
         it('should return paginated results', async () => {
@@ -72,7 +72,7 @@ describe('Developers IPC Handlers', () => {
             const newDeveloper = {
                 fullName: 'Jane Smith',
                 email: 'jane@example.com',
-                skills: ['React', 'TypeScript'],
+                skills: 'React, TypeScript',
                 seniorityLevel: 'mid',
             };
 
