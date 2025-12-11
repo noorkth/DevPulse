@@ -38,11 +38,11 @@ export function setupProjectHandlers() {
                 return cached;
             }
 
-            const params = normalizePaginationParams(paginationParams);
             const where = filters || {};
+            const params = normalizePaginationParams(paginationParams);
 
             // If no pagination requested, return all (backwards compatibility)
-            if (!params) {
+            if (!paginationParams) {
                 const projects = await prisma.project.findMany({
                     where,
                     include: {

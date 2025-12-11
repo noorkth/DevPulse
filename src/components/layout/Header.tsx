@@ -11,7 +11,7 @@ const pageTitle = {
     '/dashboard': 'Dashboard',
     '/projects': 'Projects',
     '/issues': 'Issues',
-    '/developers': 'Developers',
+    '/users': 'Users',
     '/analytics': 'Analytics',
     '/settings': 'Settings',
 };

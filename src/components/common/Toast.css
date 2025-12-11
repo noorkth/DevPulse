@@ -95,3 +95,20 @@
     background-color: #f59e0b;
     color: white;
 }
+
+/* Closing Animation */
+.toast.closing {
+    animation: slideOut 0.3s ease-in forwards;
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}

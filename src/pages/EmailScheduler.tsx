@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import './EmailScheduler.css';
 
 interface EmailSchedule {
@@ -23,6 +24,11 @@ const EmailScheduler: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingSchedule, setEditingSchedule] = useState<EmailSchedule | null>(null);
+
+    // Delete flow state
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [scheduleToDelete, setScheduleToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         loadSchedules();
@@ -50,15 +56,25 @@ const EmailScheduler: React.FC = () => {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this schedule?')) return;
+    const handleDelete = (id: string) => {
+        setScheduleToDelete(id);
+        setIsConfirmOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!scheduleToDelete) return;
 
         try {
-            await window.api.emailSchedules.delete(id);
+            setIsDeleting(true);
+            await window.api.emailSchedules.delete(scheduleToDelete);
             await loadSchedules();
+            setIsConfirmOpen(false);
+            setScheduleToDelete(null);
         } catch (error) {
             console.error('Error deleting schedule:', error);
             alert('Failed to delete schedule');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -207,6 +223,17 @@ const EmailScheduler: React.FC = () => {
                     }}
                 />
             )}
+
+            <ConfirmDialog
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={handleDeleteConfirm}
+                title="Delete Schedule"
+                message="Are you sure you want to delete this schedule? This will stop future email reports for this schedule."
+                confirmText="Delete Schedule"
+                variant="danger"
+                isLoading={isDeleting}
+            />
         </div>
     );
 };

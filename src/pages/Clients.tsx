@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import { Link } from 'react-router-dom';
 import Loading from '../components/common/Loading';
 import EmptyState from '../components/common/EmptyState';
@@ -19,6 +20,11 @@ const Clients: React.FC = () => {
         productId: '',
         contactInfo: '',
     });
+
+    // Delete flow state
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [clientToDelete, setClientToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -72,15 +78,25 @@ const Clients: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleDelete = async (id: string) => {
-        if (confirm('Are you sure? This will delete all associated projects!')) {
-            try {
-                await window.api.clients.delete(id);
-                loadData();
-            } catch (error) {
-                console.error('Error deleting client:', error);
-                alert('Error deleting client: ' + (error as Error).message);
-            }
+    const handleDelete = (id: string) => {
+        setClientToDelete(id);
+        setIsConfirmOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!clientToDelete) return;
+
+        try {
+            setIsDeleting(true);
+            await window.api.clients.delete(clientToDelete);
+            loadData();
+            setIsConfirmOpen(false);
+            setClientToDelete(null);
+        } catch (error) {
+            console.error('Error deleting client:', error);
+            alert('Error deleting client: ' + (error as Error).message);
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -250,7 +266,18 @@ const Clients: React.FC = () => {
                     </div>
                 </div>
             </Modal>
-        </div>
+
+            <ConfirmDialog
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={handleDeleteConfirm}
+                title="Delete Client"
+                message="Are you sure you want to delete this client? This will also delete all associated projects and issues. This action cannot be undone."
+                confirmText="Delete Client"
+                variant="danger"
+                isLoading={isDeleting}
+            />
+        </div >
     );
 };
 

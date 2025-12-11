@@ -91,7 +91,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
                 navigate('/issues');
                 break;
             case 'developer':
-                navigate('/developers');
+                navigate('/users');
                 break;
         }
     };

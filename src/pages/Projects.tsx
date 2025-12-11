@@ -5,6 +5,7 @@ import EmptyState from '../components/common/EmptyState';
 import Pagination from '../components/common/Pagination';
 import ProductSection from '../components/projects/ProductSection';
 import ProjectFormModal from '../components/projects/ProjectFormModal';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import { usePagination } from '../hooks/usePagination';
 import './Projects.css';
 
@@ -18,6 +19,11 @@ const Projects: React.FC = () => {
     const [totalCount, setTotalCount] = useState(0);
     const [hasMore, setHasMore] = useState(false);
     const [usePaginationMode, setUsePaginationMode] = useState(false);
+
+    // Delete/Archive flow state
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Pagination hook
     const {
@@ -95,14 +101,25 @@ const Projects: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleDelete = async (id: string) => {
-        if (confirm('Are you sure you want to archive this project?')) {
-            try {
-                await window.api.projects.delete(id);
-                loadAllData();
-            } catch (error) {
-                console.error('Error deleting project:', error);
-            }
+    const handleDelete = (id: string) => {
+        setProjectToDelete(id);
+        setIsConfirmOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!projectToDelete) return;
+
+        try {
+            setIsDeleting(true);
+            await window.api.projects.delete(projectToDelete);
+            loadAllData();
+            setIsConfirmOpen(false);
+            setProjectToDelete(null);
+        } catch (error) {
+            console.error('Error deleting project:', error);
+            alert('Error deleting project: ' + (error as Error).message);
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -188,6 +205,17 @@ const Projects: React.FC = () => {
                 project={editingProject}
                 products={products}
                 clients={clients}
+            />
+
+            <ConfirmDialog
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={handleDeleteConfirm}
+                title="Archive Project"
+                message="Are you sure you want to archive this project? This will hide it from active views but retain historical data."
+                confirmText="Archive Project"
+                variant="warning"
+                isLoading={isDeleting}
             />
         </div>
     );

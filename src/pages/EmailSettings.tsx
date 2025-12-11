@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import './EmailSettings.css';
 
 const EmailSettings: React.FC = () => {
@@ -16,6 +17,10 @@ const EmailSettings: React.FC = () => {
     const [status, setStatus] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+    // Confirm dialog flow
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [isSendingReport, setIsSendingReport] = useState(false);
 
     useEffect(() => {
         loadSchedulerStatus();
@@ -73,22 +78,26 @@ const EmailSettings: React.FC = () => {
         setLoading(false);
     };
 
-    const handleTriggerWeeklyReports = async () => {
-        if (!confirm('Send weekly reports to ALL developers?')) return;
+    const handleTriggerWeeklyReports = () => {
+        setIsConfirmOpen(true);
+    };
 
-        setLoading(true);
+    const handleTriggerConfirm = async () => {
+        setIsSendingReport(true);
         try {
             const api = window.api as any;
             const result = await api.email.triggerWeeklyReports();
             if (result.success) {
                 alert('✅ Weekly reports sent successfully!');
+                setIsConfirmOpen(false);
             } else {
                 alert('❌ Failed: ' + (result.error || 'Unknown error'));
             }
         } catch (error) {
             alert('❌ Error: ' + error);
+        } finally {
+            setIsSendingReport(false);
         }
-        setLoading(false);
     };
 
     return (
@@ -245,6 +254,17 @@ const EmailSettings: React.FC = () => {
                     <li>Weekly reports will automatically send every Monday at 9:00 AM</li>
                 </ol>
             </Card>
+
+            <ConfirmDialog
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={handleTriggerConfirm}
+                title="Send Weekly Reports"
+                message="Are you sure you want to trigger weekly reports for ALL developers immediately? This will send emails to all configured recipients."
+                confirmText="Send Reports Now"
+                variant="info"
+                isLoading={isSendingReport}
+            />
         </div>
     );
 };

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { subWeeks } from 'date-fns';
 import DateRangePicker from '../components/common/DateRangePicker';
 import GoalModal from '../components/common/GoalModal';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import { generatePerformancePDF } from '../utils/pdfGenerator';
 import PerformanceHeader from '../components/performance/PerformanceHeader';
 import PerformanceMetricsGrid from '../components/performance/PerformanceMetricsGrid';
@@ -27,6 +28,12 @@ const DeveloperPerformance: React.FC = () => {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showGoalModal, setShowGoalModal] = useState(false);
     const [goals, setGoals] = useState<any[]>([]);
+
+    // Delete goal flow
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [goalToDelete, setGoalToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
     const [developerDetail, setDeveloperDetail] = useState<any>(null);
     const [velocityTrend, setVelocityTrend] = useState<any>(null);
     const [resolutionBreakdown, setResolutionBreakdown] = useState<any>(null);
@@ -110,16 +117,26 @@ const DeveloperPerformance: React.FC = () => {
         }
     };
 
-    const handleDeleteGoal = async (goalId: string) => {
-        if (!confirm('Are you sure you want to delete this goal?')) return;
+    const handleDeleteGoal = (goalId: string) => {
+        setGoalToDelete(goalId);
+        setIsConfirmOpen(true);
+    };
+
+    const handleDeleteGoalConfirm = async () => {
+        if (!goalToDelete) return;
 
         try {
+            setIsDeleting(true);
             const api = window.api as any;
-            await api.goals.delete(goalId);
+            await api.goals.delete(goalToDelete);
             loadGoals();
+            setIsConfirmOpen(false);
+            setGoalToDelete(null);
         } catch (error) {
             console.error('Error deleting goal:', error);
             alert('Failed to delete goal. Please try again.');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -182,6 +199,17 @@ const DeveloperPerformance: React.FC = () => {
                 <TeamComparisonChart data={teamComparison} />
                 <ReopenedIssuesChart data={reopenedIssues} />
             </div>
+
+            <ConfirmDialog
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={handleDeleteGoalConfirm}
+                title="Delete Goal"
+                message="Are you sure you want to delete this goal? This action cannot be undone."
+                confirmText="Delete Goal"
+                variant="danger"
+                isLoading={isDeleting}
+            />
         </div>
     );
 };

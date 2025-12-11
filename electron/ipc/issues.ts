@@ -156,6 +156,10 @@ export function setupIssueHandlers() {
                     feature: true,
                 },
             });
+
+            // Invalidate cache
+            CacheManager.clear('list');
+
             return issue;
         } catch (error) {
             console.error('Error creating issue:', error);
@@ -237,6 +241,9 @@ export function setupIssueHandlers() {
                     feature: true,
                 },
             });
+
+            // Invalidate cache
+            CacheManager.clear('list');
 
             return updatedIssue;
         } catch (error) {

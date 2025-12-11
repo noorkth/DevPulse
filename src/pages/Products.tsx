@@ -3,6 +3,7 @@ import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import Input from '../components/common/Input';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import Loading from '../components/common/Loading';
 import EmptyState from '../components/common/EmptyState';
 import './Products.css';
@@ -16,6 +17,11 @@ const Products: React.FC = () => {
         name: '',
         description: '',
     });
+
+    // Delete flow state
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         loadProducts();
@@ -64,15 +70,25 @@ const Products: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleDelete = async (id: string) => {
-        if (confirm('Are you sure? This will delete all associated clients and projects!')) {
-            try {
-                await window.api.products.delete(id);
-                loadProducts();
-            } catch (error) {
-                console.error('Error deleting product:', error);
-                alert('Error deleting product: ' + (error as Error).message);
-            }
+    const handleDelete = (id: string) => {
+        setProductToDelete(id);
+        setIsConfirmOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!productToDelete) return;
+
+        try {
+            setIsDeleting(true);
+            await window.api.products.delete(productToDelete);
+            loadProducts();
+            setIsConfirmOpen(false);
+            setProductToDelete(null);
+        } catch (error) {
+            console.error('Error deleting product:', error);
+            alert('Error deleting product: ' + (error as Error).message);
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -188,6 +204,17 @@ const Products: React.FC = () => {
                     </div>
                 </div>
             </Modal>
+
+            <ConfirmDialog
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={handleDeleteConfirm}
+                title="Delete Product"
+                message="Are you sure you want to delete this product? This will delete ALL associated clients, projects, and issues. This action CANNOT be undone."
+                confirmText="Delete Product"
+                variant="danger"
+                isLoading={isDeleting}
+            />
         </div>
     );
 };

@@ -24,17 +24,18 @@ declare module '*.gif' {
 }
 
 // Electron API types
-declare global {
-    interface Window {
-        api: {
-            app: {
-                getVersion: () => Promise<string>;
-            };
-            theme: {
-                get: () => Promise<'light' | 'dark'>;
-                set: (theme: 'light' | 'dark' | 'system') => Promise<void>;
-            };
-            [key: string]: any;
-        };
-    }
-}
+// Electron API types - Moved to src/types/window.d.ts
+// declare global {
+//     interface Window {
+//         api: {
+//             app: {
+//                 getVersion: () => Promise<string>;
+//             };
+//             theme: {
+//                 get: () => Promise<'light' | 'dark'>;
+//                 set: (theme: 'light' | 'dark' | 'system') => Promise<void>;
+//             };
+//             [key: string]: any;
+//         };
+//     }
+// }

@@ -41,7 +41,7 @@ function App() {
 
     return (
         <ToastProvider>
-            <HashRouter>
+            <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Routes>
                     <Route path="/" element={<Layout />}>
                         <Route index element={<Navigate to="/dashboard" replace />} />
@@ -50,7 +50,7 @@ function App() {
                         <Route path="clients" element={<Clients />} />
                         <Route path="projects" element={<Projects />} />
                         <Route path="issues" element={<Issues />} />
-                        <Route path="developers" element={<Users />} />
+                        <Route path="users" element={<Users />} />
                         <Route path="analytics" element={<Analytics />} />
                         <Route path="performance" element={<PerformanceDashboard />} />
                         <Route path="performance/:developerId" element={<DeveloperPerformance />} />

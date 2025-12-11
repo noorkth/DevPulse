@@ -1,5 +1,6 @@
 import React from 'react';
 import Card from '../common/Card';
+import Button from '../common/Button';
 
 const severityColors = {
     critical: 'var(--color-severity-critical)',
@@ -60,13 +61,14 @@ const IssueCard: React.FC<IssueCardProps> = ({ issue, onResolve }) => {
                     )}
                 </div>
 
-                {(issue.status === 'open' || issue.status === 'in-progress') && (
-                    <button
-                        className="btn btn-primary btn-sm"
+                {(['open', 'in-progress', 'in_progress'].includes(issue.status)) && (
+                    <Button
+                        variant="primary"
+                        size="sm"
                         onClick={() => onResolve(issue)}
                     >
                         Mark as Resolved
-                    </button>
+                    </Button>
                 )}
             </div>
         </Card>

@@ -29,9 +29,7 @@ export function setupDeveloperHandlers() {
                 return cached;
             }
 
-            const params = normalizePaginationParams(paginationParams);
-
-            if (!params) {
+            if (!paginationParams) {
                 // Return all developers
                 const developers = await prisma.developer.findMany({
                     include: {
@@ -51,6 +49,7 @@ export function setupDeveloperHandlers() {
             }
 
             // Build pagination query
+            const params = normalizePaginationParams(paginationParams);
             const query = buildPaginationQuery(params);
             const where = {}; // Add filters if needed
 
@@ -155,6 +154,7 @@ export function setupDeveloperHandlers() {
                     email: data.email,
                     skills: JSON.stringify(data.skills || []),
                     seniorityLevel: data.seniorityLevel,
+                    role: data.role || 'developer',
                 },
             });
 
@@ -183,9 +183,24 @@ export function setupDeveloperHandlers() {
     ipcMain.handle('developers:update', async (_, id: string, data: any) => {
         const prisma = getPrisma();
         try {
+            // Prepare update data
+            const updateData: any = { ...data };
+
+            // Ensure skills are stringified if provided as array
+            if (updateData.skills && Array.isArray(updateData.skills)) {
+                updateData.skills = JSON.stringify(updateData.skills);
+            }
+
+            // Remove id from updateData if present to avoid "id" field update error
+            delete updateData.id;
+            // Remove projectIds as they are handled separately
+            delete updateData.projectIds;
+            delete updateData.createdAt;
+            delete updateData.updatedAt;
+
             const updated = await prisma.developer.update({
                 where: { id },
-                data,
+                data: updateData,
             });
 
             // Invalidate caches

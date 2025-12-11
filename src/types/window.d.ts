@@ -91,12 +91,21 @@ interface PerformanceAPI {
 declare global {
     interface Window {
         api: {
+            app: {
+                getVersion: () => Promise<string>;
+            };
             products: any;
             clients: any;
             projects: any;
-            developers: any;
+            developers: {
+                getAll: (paginationParams?: any) => Promise<any>;
+                create: (data: any) => Promise<any>;
+                update: (id: string, data: any) => Promise<any>;
+                delete: (id: string) => Promise<void>;
+                getById: (id: string) => Promise<any>;
+            };
             issues: {
-                getAll: (filters?: any) => Promise<any[]>;
+                getAll: (filters?: any, paginationParams?: any) => Promise<any>;
                 getById: (id: string) => Promise<any>;
                 create: (data: any) => Promise<any>;
                 update: (id: string, data: any) => Promise<any>;

@@ -13,6 +13,8 @@ interface ConfirmDialogProps {
     cancelText?: string;
     variant?: 'danger' | 'warning' | 'info';
     icon?: React.ReactNode;
+    isLoading?: boolean;
+    autoClose?: boolean;
 }
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -25,10 +27,16 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     cancelText = 'Cancel',
     variant = 'info',
     icon,
+    isLoading = false,
+    autoClose = true,
 }) => {
     const handleConfirm = () => {
-        onConfirm();
-        onClose();
+        if (!isLoading) {
+            onConfirm();
+            if (autoClose) {
+                onClose();
+            }
+        }
     };
 
     const getDefaultIcon = () => {
@@ -85,14 +93,16 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             onClose={onClose}
             title={title}
             size="sm"
+            isLoading={isLoading}
             footer={
                 <>
-                    <Button variant="secondary" onClick={onClose}>
+                    <Button variant="secondary" onClick={onClose} disabled={isLoading}>
                         {cancelText}
                     </Button>
                     <Button
                         variant={variant === 'danger' ? 'danger' : 'primary'}
                         onClick={handleConfirm}
+                        disabled={isLoading}
                     >
                         {confirmText}
                     </Button>

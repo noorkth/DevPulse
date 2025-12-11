@@ -7,7 +7,7 @@ const LOGO_BASE64 = 'data:image/png;base64,/9j/4AAQSkZJRgABAQABLAEsAAD/4QCARXhpZ
 
 const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-    { path: '/developers', label: 'Users', icon: '👥' },
+    { path: '/users', label: 'Users', icon: '👥' },
     { path: '/products', label: 'Products', icon: '📦' },
     { path: '/clients', label: 'Clients', icon: '🏢' },
     { path: '/projects', label: 'Projects', icon: '🗂️' },

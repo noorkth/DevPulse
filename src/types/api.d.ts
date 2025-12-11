@@ -1,6 +1,6 @@
 // API Type Definitions
 export interface IssuesAPI {
-    getAll(filters?: any): Promise<any[]>;
+    getAll(filters?: any, paginationParams?: any): Promise<any>;
     getById(id: string): Promise<any>;
     create(data: any): Promise<any>;
     update(id: string, data: any): Promise<any>;
@@ -12,6 +12,9 @@ export interface IssuesAPI {
 declare global {
     interface Window {
         api: {
+            app: {
+                getVersion: () => Promise<string>;
+            };
             products: any;
             clients: any;
             projects: any;
@@ -26,6 +29,17 @@ declare global {
             theme: {
                 get: () => Promise<'light' | 'dark'>;
                 set: (theme: 'light' | 'dark' | 'system') => Promise<void>;
+            };
+            search: {
+                global: (query: string, filters?: any) => Promise<any[]>;
+            };
+            emailSchedules: {
+                getAll: () => Promise<any[]>;
+                getById: (id: string) => Promise<any>;
+                create: (data: any) => Promise<any>;
+                update: (id: string, data: any) => Promise<any>;
+                delete: (id: string) => Promise<void>;
+                toggle: (id: string, enabled: boolean) => Promise<any>;
             };
         };
     }

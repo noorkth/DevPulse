@@ -51,7 +51,7 @@ describe('Projects IPC Handlers', () => {
             const mockEvent = { sender: { id: 1 } };
             const result = await mockIpcMain['projects:getAll'](mockEvent);
 
-            expect(result.data).toEqual(mockProjects);
+            expect(result).toEqual(mockProjects);
             expect(mockPrisma.project.findMany).toHaveBeenCalled();
         });
 

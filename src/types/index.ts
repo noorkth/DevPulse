@@ -92,6 +92,9 @@ export interface FeatureStability {
 declare global {
     interface Window {
         api: {
+            app: {
+                getVersion: () => Promise<string>;
+            };
             products: {
                 getAll: () => Promise<any[]>;
                 getById: (id: string) => Promise<any>;
@@ -115,7 +118,7 @@ declare global {
                 getStats: (id: string) => Promise<any>;
             };
             developers: {
-                getAll: () => Promise<any[]>;
+                getAll: (paginationParams?: any) => Promise<any>;
                 getById: (id: string) => Promise<any>;
                 create: (data: any) => Promise<Developer>;
                 update: (id: string, data: any) => Promise<Developer>;
@@ -123,7 +126,7 @@ declare global {
                 getProductivityScore: (id: string, timeframe?: any) => Promise<any>;
             };
             issues: {
-                getAll: (filters?: any) => Promise<any[]>;
+                getAll: (filters?: any, paginationParams?: any) => Promise<any>;
                 getById: (id: string) => Promise<any>;
                 create: (data: any) => Promise<Issue>;
                 update: (id: string, data: any) => Promise<Issue>;
@@ -145,6 +148,17 @@ declare global {
             export: {
                 toCSV: (data: any, filename: string) => Promise<any>;
                 toPDF: (data: any, filename: string) => Promise<any>;
+            };
+            search: {
+                global: (query: string, filters?: any) => Promise<any[]>;
+            };
+            emailSchedules: {
+                getAll: () => Promise<any[]>;
+                getById: (id: string) => Promise<any>;
+                create: (data: any) => Promise<any>;
+                update: (id: string, data: any) => Promise<any>;
+                delete: (id: string) => Promise<void>;
+                toggle: (id: string, enabled: boolean) => Promise<any>;
             };
         };
     }

@@ -7,6 +7,7 @@ interface Toast {
     id: string;
     message: string;
     type: ToastType;
+    closing?: boolean;
 }
 
 interface ToastContextType {
@@ -30,6 +31,15 @@ export const useToast = () => {
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [toasts, setToasts] = useState<Toast[]>([]);
 
+    const removeToast = useCallback((id: string) => {
+        setToasts(prev => prev.map(t => t.id === id ? { ...t, closing: true } : t));
+
+        // Wait for animation
+        setTimeout(() => {
+            setToasts(prev => prev.filter(toast => toast.id !== id));
+        }, 300);
+    }, []);
+
     const showToast = useCallback((message: string, type: ToastType) => {
         const id = Math.random().toString(36).substring(7);
         const newToast: Toast = { id, message, type };
@@ -38,18 +48,14 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         // Auto-remove after 3 seconds
         setTimeout(() => {
-            setToasts(prev => prev.filter(toast => toast.id !== id));
+            removeToast(id);
         }, 3000);
-    }, []);
+    }, [removeToast]);
 
     const success = useCallback((message: string) => showToast(message, 'success'), [showToast]);
     const error = useCallback((message: string) => showToast(message, 'error'), [showToast]);
     const info = useCallback((message: string) => showToast(message, 'info'), [showToast]);
     const warning = useCallback((message: string) => showToast(message, 'warning'), [showToast]);
-
-    const removeToast = (id: string) => {
-        setToasts(prev => prev.filter(toast => toast.id !== id));
-    };
 
     return (
         <ToastContext.Provider value={{ showToast, success, error, info, warning }}>
@@ -58,7 +64,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 {toasts.map(toast => (
                     <div
                         key={toast.id}
-                        className={`toast toast-${toast.type}`}
+                        className={`toast toast-${toast.type} ${toast.closing ? 'closing' : ''}`}
                         onClick={() => removeToast(toast.id)}
                     >
                         <span className="toast-icon">
