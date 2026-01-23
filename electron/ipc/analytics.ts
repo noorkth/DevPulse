@@ -273,21 +273,32 @@ export function setupAnalyticsHandlers() {
             };
 
             // By developer
-            const developers = await prisma.developer.findMany({
-                include: {
-                    issues: {
-                        where: { resolutionTime: { not: null } },
-                    },
+            const aggregations = await prisma.issue.groupBy({
+                by: ['assignedToId'],
+                where: { resolutionTime: { not: null } },
+                _avg: {
+                    resolutionTime: true,
+                },
+                _count: {
+                    resolutionTime: true,
                 },
             });
 
-            const developerAvg = developers.map(dev => ({
-                developerId: dev.id,
-                developerName: dev.fullName,
-                avgTime: dev.issues.reduce((acc, i) => acc + (i.resolutionTime || 0), 0) /
-                    (dev.issues.length || 1),
-                totalResolved: dev.issues.length,
-            }));
+            const developers = await prisma.developer.findMany({
+                select: { id: true, fullName: true },
+            });
+
+            const aggregationMap = new Map(aggregations.map(agg => [agg.assignedToId, agg]));
+
+            const developerAvg = developers.map(dev => {
+                const stats = aggregationMap.get(dev.id);
+                return {
+                    developerId: dev.id,
+                    developerName: dev.fullName,
+                    avgTime: stats?._avg?.resolutionTime || 0,
+                    totalResolved: stats?._count?.resolutionTime || 0,
+                };
+            });
 
             return {
                 bySeverity: severityAvg,
