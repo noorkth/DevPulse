@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "exportedAt": "2025-12-08T21:28:41.861Z",
+  "format": "CSV",
+  "stats": {
+    "totalProducts": 1,
+    "totalClients": 1,
+    "totalProjects": 9,
+    "totalDevelopers": 6,
+    "totalIssues": 30,
+    "totalFeatures": 27
+  }
+}

@@ -1,0 +1,277 @@
+// Prisma Schema for DevPulse
+// Product → Client → Project → Issues hierarchy
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./devpulse.db"
+}
+
+// Product Model (VU Gear, IP Gear, EB Gear)
+model Product {
+  id          String   @id @default(uuid())
+  name        String   @unique // VU Gear, IP Gear, EB Gear
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  clients     Client[]
+
+  @@index([name])
+}
+
+// Client Model (Clients within each product)
+model Client {
+  id          String   @id @default(uuid())
+  name        String
+  productId   String
+  contactInfo String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  projects    Project[]
+
+  @@index([productId])
+  @@index([name])
+}
+
+// Project Model (Projects within each client)
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  clientId    String
+  projectType String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  status      String   @default("active") // active, completed, archived, on-hold
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  issues      Issue[]
+  features    Feature[]
+  developers  DeveloperProject[]
+  analytics   AnalyticsCache[]
+
+  @@index([clientId])
+  @@index([status])
+}
+
+// Developer Model
+model Developer {
+  id             String   @id @default(uuid())
+  fullName       String
+  email          String   @unique
+  skills         String   // JSON array stored as string
+  seniorityLevel String   // junior, mid, senior, lead, principal
+  role           String   @default("developer") // developer, manager
+  
+  // Authentication fields
+  username       String?  @unique
+  passwordHash   String?
+  lastLoginAt    DateTime?
+  isActive       Boolean  @default(true)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  issues         Issue[]
+  projects       DeveloperProject[]
+  goals          DeveloperGoal[] // Performance goals
+  analytics      AnalyticsCache[]
+  comments       IssueComment[]  // Comments authored by this developer
+  activities     IssueActivity[] // Activities performed by this developer
+
+  @@index([email])
+  @@index([username])
+  @@index([seniorityLevel])
+  @@index([role])
+}
+
+// Junction table for Many-to-Many relationship
+model DeveloperProject {
+  id          String   @id @default(uuid())
+  developerId String
+  projectId   String
+  assignedAt  DateTime @default(now())
+
+  developer   Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([developerId, projectId])
+  @@index([developerId])
+  @@index([projectId])
+}
+
+// Feature Model
+model Feature {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  projectId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  issues      Issue[]
+
+  @@index([projectId])
+}
+
+// Issue Model
+model Issue {
+  id              String   @id @default(uuid())
+  title           String
+  description     String
+  severity        String   // critical, high, medium, low
+  status          String   @default("open") // open, in_progress, resolved, closed
+  featureId       String?  // Made optional
+  projectId       String
+  assignedToId    String
+  createdAt       DateTime @default(now())
+  resolvedAt      DateTime?
+  resolutionTime  Float? // in hours
+  fixQuality      Int? // 1-5 stars rating for fix quality
+  isRecurring     Boolean  @default(false)
+  recurrenceCount Int      @default(0)
+  parentIssueId   String?  // Self-referential for related issues
+  notes           String?
+  attachments     String?  // JSON array of file paths
+  estimatedTime   Float?   // ML predicted time
+  tags            String?  // JSON array of tags
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignedTo    Developer @relation(fields: [assignedToId], references: [id])
+  feature       Feature?  @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  parentIssue   Issue?    @relation("IssueRecurrence", fields: [parentIssueId], references: [id])
+  childIssues   Issue[]   @relation("IssueRecurrence")
+  comments      IssueComment[]  // Comments on this issue
+  activities    IssueActivity[] // Activity log for this issue
+
+  @@index([projectId])
+  @@index([assignedToId])
+  @@index([featureId])
+  @@index([status, severity]) // Composite index for common filters
+  @@index([assignedToId, status]) // Developer's active issues
+  @@index([projectId, status]) // Project's open issues
+  @@index([createdAt]) // Time-based queries
+  @@index([resolvedAt]) // Analytics queries
+  @@index([isRecurring]) // Hotspot detection
+}
+
+// Developer Goal Model for performance tracking
+model DeveloperGoal {
+  id           String   @id @default(uuid())
+  developerId  String
+  
+  goalType     String   // 'productivity', 'quality', 'velocity', 'resolution_time'
+  targetValue  Float    // Target to achieve
+  currentValue Float?   // Current progress
+  
+  startDate    DateTime
+  endDate      DateTime
+  
+  status       String   @default("active") // 'active', 'achieved', 'missed', 'cancelled'
+  notes        String?  // Optional notes
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  developer    Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  
+  @@index([developerId])
+  @@index([status])
+  @@index([goalType])
+}
+
+// Analytics Cache Model (for performance optimization)
+model AnalyticsCache {
+  id                   String   @id @default(uuid())
+  developerId          String?
+  projectId            String?
+  productivityScore    Float?
+  avgResolutionTime    Float?
+  recurringBugCount    Int?
+  totalIssuesResolved  Int?
+  featureStabilityScore Float?
+  calculatedAt         DateTime @default(now())
+
+  // Relations
+  developer            Developer? @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  project              Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([developerId])
+  @@index([projectId])
+  @@index([calculatedAt])
+}
+
+// Email Schedule Model (for customizable report scheduling)
+model EmailSchedule {
+  id              String   @id @default(uuid())
+  name            String   // User-friendly name for the schedule
+  reportType      String   // 'performance', 'issues', 'analytics', 'summary'
+  frequency       String   // 'daily', 'weekly', 'monthly', 'quarterly'
+  dayOfWeek       Int?     // 0-6 for weekly schedules (0 = Sunday)
+  dayOfMonth      Int?     // 1-31 for monthly schedules
+  time            String   // HH:MM format (24-hour)
+  recipients      String   // JSON array of email addresses
+  ccList          String?  // JSON array for CC
+  enabled         Boolean  @default(true)
+  lastRun         DateTime?
+  nextRun         DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([enabled])
+  @@index([nextRun])
+}
+
+// Issue Comment Model (for collaboration)
+model IssueComment {
+  id          String   @id @default(uuid())
+  issueId     String
+  authorId    String
+  content     String   // The comment text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  issue       Issue     @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  author      Developer @relation(fields: [authorId], references: [id])
+  
+  @@index([issueId])
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+// Issue Activity Model (for tracking changes)
+model IssueActivity {
+  id           String   @id @default(uuid())
+  issueId      String
+  userId       String   // Who performed the action
+  activityType String   // 'created', 'assigned', 'status_changed', 'commented', 'resolved', 'reopened', 'severity_changed'
+  details      String?  // JSON with old/new values
+  createdAt    DateTime @default(now())
+  
+  // Relations
+  issue        Issue     @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  user         Developer @relation(fields: [userId], references: [id])
+  
+  @@index([issueId])
+  @@index([userId])
+  @@index([activityType])
+  @@index([createdAt])
+}

@@ -1,0 +1,4 @@
+title,description,severity,status,assignedTo,project,feature,estimatedTime,tags
+Login Bug,Users cannot login with correct credentials,high,open,john@example.com,Web App,,4,"bug,login,urgent"
+Dashboard Loading Slow,Dashboard takes 10+ seconds to load,medium,in_progress,jane@example.com,Mobile App,,8,"performance,dashboard"
+Payment Integration,Implement Stripe payment gateway,low,open,bob@example.com,Web App,,16,"feature,payment"

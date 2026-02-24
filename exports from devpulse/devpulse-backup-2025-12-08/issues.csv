@@ -1,0 +1,309 @@
+id,title,description,severity,status,featureId,projectId,assignedToId,createdAt,resolvedAt,resolutionTime,fixQuality,isRecurring,recurrenceCount,parentIssueId,notes,attachments
+53cd52e9-20f1-4806-9e59-873647dfb873,[Cine+] iOS app crashes on iPad portrait mode,"**Problem:** App crashes immediately on iPad in portrait orientation
+
+**Device:** iPad Pro 11"" (iOS 17.2)
+**Crash Log:**
+```
+Fatal Exception: NSInvalidArgumentException
+UICollectionView dataSource inconsistency
+```
+
+**Reproduction:**
+1. Launch app on iPad
+2. Rotate to portrait
+3. Navigate to Dashboard → Crash
+
+**Fix:** Update collection view layout constraints for iPad",high,open,fadd6de6-2330-4a4d-9f8e-c96c942a61b2,b0c40245-7c88-43f2-91f1-6cca8f6a01c8,a21d5510-8fd3-4872-bda5-376a233d8e30,Sun Nov 23 2025 02:38:32 GMT+0545 (Nepal Time),,,,false,0,,,
+a7e27a7a-6b9f-44cb-943a-b1f3860669c7,[Cine+] Redis cache not invalidating on update,"**Problem:** Stale data served after database updates
+
+**Example:**
+1. Update user profile → DB updated
+2. GET /api/user → returns old data (from cache)
+3. Cache TTL: 1 hour
+
+**Solution:** Implement cache invalidation on write operations",medium,open,dfd8501d-b1a7-4f99-8bf0-2e013664e674,b0c40245-7c88-43f2-91f1-6cca8f6a01c8,41a13bfe-959f-4b39-a5e9-b7dcf0116e7e,Thu Oct 30 2025 09:04:39 GMT+0545 (Nepal Time),,,,false,0,,,
+00075200-0f31-4db7-a1e6-59ae29baf1cd,[Cine+] Date picker showing wrong timezone,"**Issue:** Selected dates off by 1 day
+
+**Example:**
+- User selects: Dec 8, 2025
+- Backend receives: Dec 7, 2025 16:00:00 UTC
+
+**Cause:** Missing timezone conversion
+**Fix:** Use date-fns with timezone support",medium,resolved,c155f3af-a272-4d04-9515-d42acbba9e6b,b0c40245-7c88-43f2-91f1-6cca8f6a01c8,e54949e9-48a6-4a61-98f3-0dea28a6a07a,Mon Nov 03 2025 05:42:42 GMT+0545 (Nepal Time),Sat Nov 29 2025 10:41:20 GMT+0545 (Nepal Time),4,5,false,0,,,
+9d6bc648-1e5a-4757-bbd5-bbe7ecdbe310,[Launcher] Android app slow on devices with <4GB RAM,"**Performance:** App laggy on mid-range Android devices
+
+**Devices Tested:**
+- Samsung A32 (3GB RAM) - 15 FPS
+- Xiaomi Redmi 9 (4GB RAM) - 25 FPS
+- Target: 60 FPS
+
+**Optimizations Needed:**
+- Image lazy loading
+- RecyclerView view recycling
+- Reduce overdraw",high,open,82c4ca61-465a-436a-b1f2-c208ae0bddff,9f8c6b6a-8e77-4546-905c-c3a2535fdc47,12763fad-6ef9-430e-a804-3695d6c53e82,Sat Nov 29 2025 17:46:09 GMT+0545 (Nepal Time),,,,false,0,,,
+442c8d6c-fe18-44c3-9bd4-c6ce226eaad7,[Launcher] Backup restoration taking 6+ hours,"**Issue:** Database restore unacceptably slow
+
+**Database:** PostgreSQL 500GB
+**Current:** 6-8 hours restore time
+**Target:** <2 hours
+
+**Bottleneck:** Single-threaded pg_restore
+
+**Solution:** Parallel restore with custom format dump",medium,in_progress,c2cd82ad-32d7-4c19-b1f7-8c279a2299d2,9f8c6b6a-8e77-4546-905c-c3a2535fdc47,30641706-b413-434b-a724-78815f1eab84,Thu Nov 06 2025 00:42:15 GMT+0545 (Nepal Time),,,,false,0,,,
+58ff1122-450c-44ca-a5b4-52e5c4bef725,[Launcher] In-app subscription restore failing,"**Problem:** ""Restore Purchase"" button does nothing
+
+**StoreKit Error:** Transaction not found
+**Affected:** Users who reinstalled app
+
+**Need:** 
+1. Verify receipt with Apple servers
+2. Sync with backend subscription DB
+3. Update UI state",critical,open,71a9296f-ce07-4346-aa4b-5d27059d506d,9f8c6b6a-8e77-4546-905c-c3a2535fdc47,a21d5510-8fd3-4872-bda5-376a233d8e30,Wed Oct 29 2025 06:10:04 GMT+0545 (Nepal Time),,,,false,0,,,
+68952350-e141-4cbe-a1bc-154e3b064ff0,[Live TV] Database deadlock during concurrent updates,"**Problem:** Deadlock when multiple users update same resource
+
+**Error Log:**
+```
+ERROR: deadlock detected
+DETAIL: Process 1234 waits for ShareLock on transaction 5678
+```
+
+**Scenario:** 
+- User A updates project status
+- User B updates same project simultaneously
+- Database locks conflict
+
+**Fix:** Implement optimistic locking with version field",high,in_progress,d9322172-fbc0-4410-ba10-53909836c6c1,bf379b76-f968-4e3d-8f02-369615fe009c,41a13bfe-959f-4b39-a5e9-b7dcf0116e7e,Mon Nov 24 2025 17:50:15 GMT+0545 (Nepal Time),,,,false,0,,,
+7bb0a338-1f7e-4cc0-9df9-41264607875d,[Live TV] Memory leak in dashboard real-time updates,"**Problem:** Browser memory grows 100MB+ after 30min
+
+**Cause:** WebSocket listeners not cleaned up
+**Component:** Dashboard.tsx useEffect
+
+**Memory Profile:**
+- Initial: 50MB
+- After 30min: 180MB
+- After 1hr: 350MB (tab crashes)
+
+**Fix:** Add cleanup in useEffect return",critical,in_progress,36c30248-2d36-4c0e-bda1-fd6a25e6cacd,bf379b76-f968-4e3d-8f02-369615fe009c,e54949e9-48a6-4a61-98f3-0dea28a6a07a,Mon Dec 08 2025 09:44:18 GMT+0545 (Nepal Time),,,,false,0,,,
+dd654cba-25ff-41f4-af8d-eaf89e76412a,[Live TV] Deep linking not working from email,"**Problem:** Tapping email links opens browser, not app
+
+**Platform:** Android 12+
+**Expected:** App opens directly
+**Actual:** Browser disambiguation screen shown
+
+**Fix:** Configure App Links with assetlinks.json",medium,resolved,819fc712-a063-4f68-8106-f391549b9344,bf379b76-f968-4e3d-8f02-369615fe009c,12763fad-6ef9-430e-a804-3695d6c53e82,Tue Dec 02 2025 20:22:11 GMT+0545 (Nepal Time),Sat Dec 06 2025 14:47:59 GMT+0545 (Nepal Time),8,5,false,0,,,
+6101b7b8-47b5-4655-8c3d-a63367d6a8b7,[Payment and subscription] Payment gateway timeout intermittently,"**Recurring Issue** - Happens 2-3 times per week
+
+**Problem:** Payment processing randomly times out after 30s
+
+**Frequency:** 15% of transactions
+**Gateway:** Stripe API
+**Error:** Gateway timeout - no response
+
+**Pattern:**
+- More frequent during peak hours (6-9 PM)
+- Affects credit card payments only
+- Retry usually succeeds
+
+**Impact:** Customer frustration, abandoned carts
+
+**Root Cause:** Need connection pooling + retry logic with exponential backoff",high,open,3b381d28-5c5c-4fbd-8222-95d17eea9075,3e7d362d-1b8d-4ba8-b796-1364f5efcb74,41a13bfe-959f-4b39-a5e9-b7dcf0116e7e,Wed Nov 12 2025 04:33:04 GMT+0545 (Nepal Time),,,,true,12,,,
+51f1812e-7ae3-48a3-9a46-b9134e6cab07,[Payment and subscription] Subscription renewal emails not sending,"**Recurring Issue** - Reported monthly
+
+**Problem:** Auto-renewal emails fail to send to ~10% of users
+
+**Symptoms:**
+- Email job completes ""successfully""
+- No emails in user inbox or spam
+- SendGrid shows 200 OK but no delivery
+
+**Affected:** ~500 users per month
+**Last occurred:** 3 days ago
+
+**Workaround:** Manual email trigger via admin panel
+
+**Need:** Email delivery monitoring + webhook verification",critical,in_progress,3b381d28-5c5c-4fbd-8222-95d17eea9075,3e7d362d-1b8d-4ba8-b796-1364f5efcb74,41a13bfe-959f-4b39-a5e9-b7dcf0116e7e,Wed Nov 19 2025 12:43:57 GMT+0545 (Nepal Time),,,,true,8,,,
+9a411e6b-4458-4eec-9f88-bd66b485ffae,[Payment and subscription] Subscription downgrade losing user data,"**Recurring Issue** - Critical data loss bug
+
+**Problem:** When users downgrade plan, custom settings are wiped
+
+**Steps:**
+1. User downgrades Premium → Basic
+2. Subscription update processes
+3. User settings table cleared incorrectly
+
+**Data Lost:**
+- Custom preferences
+- Saved filters
+- Dashboard layouts
+
+**Occurrences:** 4 times this month
+**Status:** In progress - adding data migration logic",critical,in_progress,3b381d28-5c5c-4fbd-8222-95d17eea9075,3e7d362d-1b8d-4ba8-b796-1364f5efcb74,41a13bfe-959f-4b39-a5e9-b7dcf0116e7e,Sun Dec 07 2025 13:48:24 GMT+0545 (Nepal Time),,18,3,true,4,,,
+6e2dd0ca-a794-463c-80e0-23f4616f0e25,[Payment and subscription] Kubernetes pod evictions during deploy,"**Problem:** Pods evicted randomly during deployment
+
+**Error:** OOMKilled - Memory limit exceeded
+
+**Current Limits:**
+- Request: 256Mi
+- Limit: 512Mi
+- Actual usage: 480-550Mi (spikes during GC)
+
+**Fix:** Increase limits to 1Gi, tune JVM heap",high,open,3b381d28-5c5c-4fbd-8222-95d17eea9075,3e7d362d-1b8d-4ba8-b796-1364f5efcb74,30641706-b413-434b-a724-78815f1eab84,Thu Nov 06 2025 22:21:23 GMT+0545 (Nepal Time),,,,false,0,,,
+eebea054-a2e5-4462-90c8-8c7ae03689af,[Payment and subscription] Push notifications not appearing on locked screen,"**Issue:** Notifications work in-app but not on lock screen
+
+**Environment:** iOS 16+
+**Symptom:** Banner shown only when app is open
+
+**Root Cause:** Missing UNAuthorizationOptions
+- Need: .alert, .sound, .badge
+
+**Impact:** Users miss important updates",medium,resolved,a5a9a6c6-275a-4f43-8330-c00f6d7cfc79,3e7d362d-1b8d-4ba8-b796-1364f5efcb74,a21d5510-8fd3-4872-bda5-376a233d8e30,Wed Nov 12 2025 03:54:00 GMT+0545 (Nepal Time),Fri Dec 05 2025 14:18:16 GMT+0545 (Nepal Time),6,5,false,0,,,
+4923f225-781f-4532-b018-1fe3458289ca,[Payment and subscription] API rate limiter blocking legitimate traffic,"**Issue:** Rate limiter too aggressive
+
+**Current:** 100 req/min per IP
+**Problem:** Corporate networks share single IP
+
+**Impact:** Enterprise clients getting 429 errors
+
+**Solution:** Token bucket algorithm with user-based limits",high,resolved,34db95be-1093-4e4f-85b0-4289ba33cdcc,3e7d362d-1b8d-4ba8-b796-1364f5efcb74,41a13bfe-959f-4b39-a5e9-b7dcf0116e7e,Sun Nov 16 2025 10:37:15 GMT+0545 (Nepal Time),Sat Nov 22 2025 04:50:34 GMT+0545 (Nepal Time),10,4,false,0,,,
+7fa35540-e1a0-4ab7-8ab0-f2851a483e4d,[NetTV OTT (iOS)] Table pagination breaking with filters,"**Bug:** When filters applied, pagination shows wrong page count
+
+**Steps:**
+1. Apply filter (reduces results to 15 items)
+2. Pagination still shows 50 pages (total pre-filter)
+3. Clicking page 2+ shows empty results
+
+**Fix:** Recalculate pagination after filtering",medium,open,217c278d-f9a4-4f5f-822b-1a3bbd395c0b,6632d5ec-5664-451f-aa29-6e039d52a37f,e54949e9-48a6-4a61-98f3-0dea28a6a07a,Fri Nov 07 2025 02:34:10 GMT+0545 (Nepal Time),,,,false,0,,,
+a7e9c915-09c5-4218-9b9e-32a6a1243900,[NetTV OTT (iOS)] React Native bridge causing ANR warnings,"**ANR:** Application Not Responding on native calls
+
+**Scenario:** Calling native camera module blocks UI thread
+**Duration:** 2-3 seconds
+
+**Google Play Vitals:** 5% ANR rate
+
+**Fix:** Move native calls to background thread",critical,in_progress,3ca5068f-a001-473a-976c-977f6703eecc,6632d5ec-5664-451f-aa29-6e039d52a37f,12763fad-6ef9-430e-a804-3695d6c53e82,Tue Nov 04 2025 15:47:59 GMT+0545 (Nepal Time),,,,false,0,,,
+52aff189-d955-44c0-b490-b0acb6fea84e,[NetTV OTT (iOS)] CDN cache purge not propagating,"**Problem:** Cache purge takes 30+ minutes to propagate
+
+**Expected:** <5 minutes globally
+**Impact:** Users see stale assets after deployment
+
+**CDN:** CloudFlare
+**Fix:** Use cache tags for instant purge",medium,resolved,12067941-0c3e-46dc-a387-4b3c9bdb8740,6632d5ec-5664-451f-aa29-6e039d52a37f,30641706-b413-434b-a724-78815f1eab84,Sun Nov 02 2025 23:19:21 GMT+0545 (Nepal Time),Fri Dec 05 2025 13:37:53 GMT+0545 (Nepal Time),3,4,false,0,,,
+da01c524-2efb-41b1-8439-08a4e02f2ec3,[NetTV OTT (android)] iOS app crashes on iPad portrait mode,"**Problem:** App crashes immediately on iPad in portrait orientation
+
+**Device:** iPad Pro 11"" (iOS 17.2)
+**Crash Log:**
+```
+Fatal Exception: NSInvalidArgumentException
+UICollectionView dataSource inconsistency
+```
+
+**Reproduction:**
+1. Launch app on iPad
+2. Rotate to portrait
+3. Navigate to Dashboard → Crash
+
+**Fix:** Update collection view layout constraints for iPad",high,open,e518f044-9382-4669-8754-96bb189074f3,3a85068e-c6ec-4701-861f-218073b2e09c,a21d5510-8fd3-4872-bda5-376a233d8e30,Thu Nov 06 2025 05:26:09 GMT+0545 (Nepal Time),,,,false,0,,,
+1d3851e0-bb36-4b50-9b34-e2a687a5f3fa,[NetTV OTT (android)] Redis cache not invalidating on update,"**Problem:** Stale data served after database updates
+
+**Example:**
+1. Update user profile → DB updated
+2. GET /api/user → returns old data (from cache)
+3. Cache TTL: 1 hour
+
+**Solution:** Implement cache invalidation on write operations",medium,open,cb812e7f-8d6d-4588-b8c0-ade3c4543bf3,3a85068e-c6ec-4701-861f-218073b2e09c,41a13bfe-959f-4b39-a5e9-b7dcf0116e7e,Fri Oct 31 2025 14:44:53 GMT+0545 (Nepal Time),,,,false,0,,,
+dac35979-35a6-46d9-969f-63936b1c58de,[NetTV OTT (android)] Date picker showing wrong timezone,"**Issue:** Selected dates off by 1 day
+
+**Example:**
+- User selects: Dec 8, 2025
+- Backend receives: Dec 7, 2025 16:00:00 UTC
+
+**Cause:** Missing timezone conversion
+**Fix:** Use date-fns with timezone support",medium,resolved,728d931f-311f-4f1c-ba1e-0840cad21eb3,3a85068e-c6ec-4701-861f-218073b2e09c,e54949e9-48a6-4a61-98f3-0dea28a6a07a,Wed Oct 29 2025 07:21:08 GMT+0545 (Nepal Time),Wed Nov 26 2025 00:49:57 GMT+0545 (Nepal Time),4,5,false,0,,,
+3bf016d4-6d8b-4426-97d8-7e7a86733fe1,[RATV] Android app slow on devices with <4GB RAM,"**Performance:** App laggy on mid-range Android devices
+
+**Devices Tested:**
+- Samsung A32 (3GB RAM) - 15 FPS
+- Xiaomi Redmi 9 (4GB RAM) - 25 FPS
+- Target: 60 FPS
+
+**Optimizations Needed:**
+- Image lazy loading
+- RecyclerView view recycling
+- Reduce overdraw",high,open,7c4bd98a-f72b-4725-966d-2871934e5c61,9a4dee04-d3b9-4044-9085-da2ee65f4302,12763fad-6ef9-430e-a804-3695d6c53e82,Sun Nov 09 2025 03:19:58 GMT+0545 (Nepal Time),,,,false,0,,,
+8b28a89f-c211-48b4-8f98-1a7ce405275e,[RATV] Backup restoration taking 6+ hours,"**Issue:** Database restore unacceptably slow
+
+**Database:** PostgreSQL 500GB
+**Current:** 6-8 hours restore time
+**Target:** <2 hours
+
+**Bottleneck:** Single-threaded pg_restore
+
+**Solution:** Parallel restore with custom format dump",medium,in_progress,99c2768a-2808-4c9a-93e4-e66fb648a20f,9a4dee04-d3b9-4044-9085-da2ee65f4302,30641706-b413-434b-a724-78815f1eab84,Tue Oct 28 2025 09:00:25 GMT+0545 (Nepal Time),,,,false,0,,,
+0256ea90-bdd1-43fa-ba13-f1fd379d8aba,[RATV] In-app subscription restore failing,"**Problem:** ""Restore Purchase"" button does nothing
+
+**StoreKit Error:** Transaction not found
+**Affected:** Users who reinstalled app
+
+**Need:** 
+1. Verify receipt with Apple servers
+2. Sync with backend subscription DB
+3. Update UI state",critical,open,b4eb0ec6-48b5-4283-b839-63e7839499bd,9a4dee04-d3b9-4044-9085-da2ee65f4302,a21d5510-8fd3-4872-bda5-376a233d8e30,Mon Dec 01 2025 05:27:11 GMT+0545 (Nepal Time),,,,false,0,,,
+5a0d8410-3cb7-45fb-9a5a-51e964fc66c5,[HATV] Database deadlock during concurrent updates,"**Problem:** Deadlock when multiple users update same resource
+
+**Error Log:**
+```
+ERROR: deadlock detected
+DETAIL: Process 1234 waits for ShareLock on transaction 5678
+```
+
+**Scenario:** 
+- User A updates project status
+- User B updates same project simultaneously
+- Database locks conflict
+
+**Fix:** Implement optimistic locking with version field",high,in_progress,838a13dd-074c-4a0d-9b3d-33919174d3b6,9f57392c-e3fa-4ccc-b460-2818b7e1a0a4,41a13bfe-959f-4b39-a5e9-b7dcf0116e7e,Sun Nov 30 2025 06:47:06 GMT+0545 (Nepal Time),,,,false,0,,,
+8bc8e476-2637-45da-a5d4-687004b2d09e,[HATV] Memory leak in dashboard real-time updates,"**Problem:** Browser memory grows 100MB+ after 30min
+
+**Cause:** WebSocket listeners not cleaned up
+**Component:** Dashboard.tsx useEffect
+
+**Memory Profile:**
+- Initial: 50MB
+- After 30min: 180MB
+- After 1hr: 350MB (tab crashes)
+
+**Fix:** Add cleanup in useEffect return",critical,in_progress,09811ff1-fa5b-4da4-8432-fddee3c74b35,9f57392c-e3fa-4ccc-b460-2818b7e1a0a4,e54949e9-48a6-4a61-98f3-0dea28a6a07a,Tue Nov 11 2025 20:47:04 GMT+0545 (Nepal Time),,,,false,0,,,
+118f869e-95f6-48be-95f6-9abf89a47189,[HATV] Deep linking not working from email,"**Problem:** Tapping email links opens browser, not app
+
+**Platform:** Android 12+
+**Expected:** App opens directly
+**Actual:** Browser disambiguation screen shown
+
+**Fix:** Configure App Links with assetlinks.json",medium,resolved,d27d6623-f009-4123-84ab-e040f46c2dd2,9f57392c-e3fa-4ccc-b460-2818b7e1a0a4,12763fad-6ef9-430e-a804-3695d6c53e82,Wed Nov 05 2025 19:23:49 GMT+0545 (Nepal Time),Sun Dec 07 2025 15:16:32 GMT+0545 (Nepal Time),8,5,false,0,,,
+2a209e2b-a56f-4a29-85ec-feac06d016f1,[NetTV Authentication] Kubernetes pod evictions during deploy,"**Problem:** Pods evicted randomly during deployment
+
+**Error:** OOMKilled - Memory limit exceeded
+
+**Current Limits:**
+- Request: 256Mi
+- Limit: 512Mi
+- Actual usage: 480-550Mi (spikes during GC)
+
+**Fix:** Increase limits to 1Gi, tune JVM heap",high,open,3ab94c39-c35b-4428-b3e7-238e89662c02,de7bfac9-f5db-42b6-98dc-f89dfeef98ee,30641706-b413-434b-a724-78815f1eab84,Wed Dec 03 2025 22:17:46 GMT+0545 (Nepal Time),,,,false,0,,,
+7143d778-e90a-4ef1-a3fd-3bf3cc928d09,[NetTV Authentication] Push notifications not appearing on locked screen,"**Issue:** Notifications work in-app but not on lock screen
+
+**Environment:** iOS 16+
+**Symptom:** Banner shown only when app is open
+
+**Root Cause:** Missing UNAuthorizationOptions
+- Need: .alert, .sound, .badge
+
+**Impact:** Users miss important updates",medium,resolved,e0832caa-b23b-4d08-8fc7-792cac31ac68,de7bfac9-f5db-42b6-98dc-f89dfeef98ee,a21d5510-8fd3-4872-bda5-376a233d8e30,Fri Nov 28 2025 17:13:40 GMT+0545 (Nepal Time),Wed Nov 19 2025 14:19:26 GMT+0545 (Nepal Time),6,5,false,0,,,
+087c595c-ace0-4d09-80a9-98478e383410,[NetTV Authentication] API rate limiter blocking legitimate traffic,"**Issue:** Rate limiter too aggressive
+
+**Current:** 100 req/min per IP
+**Problem:** Corporate networks share single IP
+
+**Impact:** Enterprise clients getting 429 errors
+
+**Solution:** Token bucket algorithm with user-based limits",high,resolved,a3d5a100-5417-48f2-b6d1-698e134bde6a,de7bfac9-f5db-42b6-98dc-f89dfeef98ee,41a13bfe-959f-4b39-a5e9-b7dcf0116e7e,Tue Oct 28 2025 23:31:18 GMT+0545 (Nepal Time),Sat Nov 22 2025 19:50:54 GMT+0545 (Nepal Time),10,4,false,0,,,

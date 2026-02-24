@@ -1,0 +1,10 @@
+{
+  "name": "devpulse",
+  "private": true,
+  "version": "3.1.0",
+  "type": "module",
+  "description": "Developer Productivity & Issue Intelligence Desktop App with AI-Powered Analytics",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "npx prisma generate && tsc && vite build",
