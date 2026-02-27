@@ -133,6 +133,12 @@ declare global {
                 delete: (id: string) => Promise<void>;
                 toggle: (id: string, enabled: boolean) => Promise<any>;
             };
+            auth: {
+                login: (username: string, password: string) => Promise<any>;
+                logout: () => Promise<{ success: boolean }>;
+                getCurrentUser: () => Promise<any | null>;
+                updatePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean }>;
+            };
         };
     }
 }

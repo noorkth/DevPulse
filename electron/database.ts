@@ -55,11 +55,12 @@ export async function initializeDatabase(): Promise<void> {
         const { execSync } = await import('child_process');
 
         try {
-            // Run prisma db push to sync schema (creates/updates tables automatically)
-            execSync('npx prisma db push --skip-generate --accept-data-loss', {
+            // Use local prisma binary directly (avoids npx + PATH issues)
+            const prismaBin = path.join(process.cwd(), 'node_modules', '.bin', 'prisma');
+            execSync(`"${prismaBin}" db push --skip-generate --accept-data-loss`, {
                 cwd: process.cwd(),
                 env: { ...process.env, DATABASE_URL: `file:${dbPath}` },
-                stdio: 'inherit' // Show output in console
+                stdio: 'inherit'
             });
 
             if (!dbExists) {
