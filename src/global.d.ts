@@ -17,6 +17,26 @@ declare global {
             issues: any;
             analytics: any;
             export: any;
+            goals: any;
+            sharedIssues: any;
+            sla: any;
+            incidents: any;
+            clientHealth: any;
+            officeVisits: any;
+            resets: any;
+            mbr: any;
+            monitoring: any;
+            featureRequests: any;
+            aiPreventive: any;
+            auth: {
+                login: (username: string, password: string) => Promise<{
+                    id: string;
+                    username: string;
+                    fullName: string;
+                    email: string;
+                    role: string;
+                }>;
+            };
         };
     }
 }

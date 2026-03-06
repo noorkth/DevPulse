@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./devpulse.db"
+  url      = env("DATABASE_URL")
 }
 
 // Product Model (VU Gear, IP Gear, EB Gear)
@@ -19,7 +19,7 @@ model Product {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  clients     Client[]
+  clients Client[]
 
   @@index([name])
 }
@@ -34,8 +34,18 @@ model Client {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  projects    Project[]
+  product                   Product                    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  projects                  Project[]
+  // Governance relations
+  sharedIssues              SharedIssue[]
+  clientHealthScores        ClientHealthScore[]
+  officeVisits              OfficeVisit[]
+  relationshipResets        RelationshipReset[]
+  monthlyReviews            MonthlyBusinessReview[]
+  monitoringChecklists      MonitoringChecklist[]
+  preventiveRecommendations PreventiveRecommendation[]
+  featureRequests           FeatureRequest[]
+  developers                Developer[]                @relation("DeveloperClient")
 
   @@index([productId])
   @@index([name])
@@ -43,23 +53,24 @@ model Client {
 
 // Project Model (Projects within each client)
 model Project {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   name        String
   clientId    String
   projectType String
   description String?
   startDate   DateTime
   endDate     DateTime?
-  status      String   @default("active") // active, completed, archived, on-hold
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      String    @default("active") // active, completed, on_hold
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
-  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  issues      Issue[]
-  features    Feature[]
-  developers  DeveloperProject[]
-  analytics   AnalyticsCache[]
+  client          Client             @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  issues          Issue[]
+  features        Feature[]
+  developers      DeveloperProject[]
+  analytics       AnalyticsCache[]
+  featureRequests FeatureRequest[]
 
   @@index([clientId])
   @@index([status])
@@ -70,17 +81,27 @@ model Developer {
   id             String   @id @default(uuid())
   fullName       String
   email          String   @unique
-  skills         String   // JSON array stored as string
-  seniorityLevel String   // junior, mid, senior, lead, principal
-  role           String   @default("developer") // developer, manager
+  skills         String // JSON array stored as string
+  seniorityLevel String // junior, mid, senior, lead, principal
+  role           String   @default("developer") // developer, manager, admin, client_admin
+  clientId       String? // Only set for client_admin role — scopes their access
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   // Relations
-  issues         Issue[]
-  projects       DeveloperProject[]
-  goals          DeveloperGoal[] // Performance goals
-  analytics      AnalyticsCache[]
+  client                Client?                 @relation("DeveloperClient", fields: [clientId], references: [id])
+  issues                Issue[]
+  projects              DeveloperProject[]
+  goals                 DeveloperGoal[]
+  analytics             AnalyticsCache[]
+  // Governance relations
+  sharedIssues          SharedIssue[]
+  sharedIssueActivities SharedIssueActivity[]
+  incidentUpdates       IncidentUpdate[]
+  officeVisits          OfficeVisit[]
+  relationshipResets    RelationshipReset[]
+  monthlyReviews        MonthlyBusinessReview[]
+  monitoringChecklists  MonitoringChecklist[]
 
   @@index([email])
   @@index([seniorityLevel])
@@ -94,8 +115,8 @@ model DeveloperProject {
   projectId   String
   assignedAt  DateTime @default(now())
 
-  developer   Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
-  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  developer Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([developerId, projectId])
   @@index([developerId])
@@ -112,41 +133,41 @@ model Feature {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  issues      Issue[]
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  issues  Issue[]
 
   @@index([projectId])
 }
 
 // Issue Model
 model Issue {
-  id              String   @id @default(uuid())
+  id              String    @id @default(uuid())
   title           String
   description     String
-  severity        String   // critical, high, medium, low
-  status          String   @default("open") // open, in_progress, resolved, closed
-  featureId       String?  // Made optional
+  severity        String // critical, high, medium, low
+  status          String    @default("open") // open, in_progress, resolved, closed
+  featureId       String? // Made optional
   projectId       String
   assignedToId    String
-  createdAt       DateTime @default(now())
+  createdAt       DateTime  @default(now())
   resolvedAt      DateTime?
   resolutionTime  Float? // in hours
   fixQuality      Int? // 1-5 stars rating for fix quality
-  isRecurring     Boolean  @default(false)
-  recurrenceCount Int      @default(0)
-  parentIssueId   String?  // Self-referential for related issues
+  isRecurring     Boolean   @default(false)
+  recurrenceCount Int       @default(0)
+  parentIssueId   String? // Self-referential for related issues
   notes           String?
-  attachments     String?  // JSON array of file paths
-  estimatedTime   Float?   // ML predicted time
-  tags            String?  // JSON array of tags
-  updatedAt       DateTime @updatedAt
+  attachments     String? // JSON array of file paths
+  estimatedTime   Float? // ML predicted time
+  tags            String? // JSON array of tags
+  updatedAt       DateTime  @updatedAt
 
   // Relations
-  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  assignedTo    Developer @relation(fields: [assignedToId], references: [id])
-  feature       Feature?  @relation(fields: [featureId], references: [id], onDelete: Cascade)
-  parentIssue   Issue?    @relation("IssueRecurrence", fields: [parentIssueId], references: [id])
-  childIssues   Issue[]   @relation("IssueRecurrence")
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignedTo  Developer @relation(fields: [assignedToId], references: [id])
+  feature     Feature?  @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  parentIssue Issue?    @relation("IssueRecurrence", fields: [parentIssueId], references: [id])
+  childIssues Issue[]   @relation("IssueRecurrence")
 
   @@index([projectId])
   @@index([assignedToId])
@@ -161,25 +182,25 @@ model Issue {
 
 // Developer Goal Model for performance tracking
 model DeveloperGoal {
-  id           String   @id @default(uuid())
-  developerId  String
-  
-  goalType     String   // 'productivity', 'quality', 'velocity', 'resolution_time'
-  targetValue  Float    // Target to achieve
-  currentValue Float?   // Current progress
-  
-  startDate    DateTime
-  endDate      DateTime
-  
-  status       String   @default("active") // 'active', 'achieved', 'missed', 'cancelled'
-  notes        String?  // Optional notes
-  
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
+  id          String @id @default(uuid())
+  developerId String
+
+  goalType     String // 'productivity', 'quality', 'velocity', 'resolution_time'
+  targetValue  Float // Target to achieve
+  currentValue Float? // Current progress
+
+  startDate DateTime
+  endDate   DateTime
+
+  status String  @default("active") // 'active', 'achieved', 'missed', 'cancelled'
+  notes  String? // Optional notes
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  developer    Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
-  
+  developer Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
+
   @@index([developerId])
   @@index([status])
   @@index([goalType])
@@ -187,19 +208,19 @@ model DeveloperGoal {
 
 // Analytics Cache Model (for performance optimization)
 model AnalyticsCache {
-  id                   String   @id @default(uuid())
-  developerId          String?
-  projectId            String?
-  productivityScore    Float?
-  avgResolutionTime    Float?
-  recurringBugCount    Int?
-  totalIssuesResolved  Int?
+  id                    String   @id @default(uuid())
+  developerId           String?
+  projectId             String?
+  productivityScore     Float?
+  avgResolutionTime     Float?
+  recurringBugCount     Int?
+  totalIssuesResolved   Int?
   featureStabilityScore Float?
-  calculatedAt         DateTime @default(now())
+  calculatedAt          DateTime @default(now())
 
   // Relations
-  developer            Developer? @relation(fields: [developerId], references: [id], onDelete: Cascade)
-  project              Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  developer Developer? @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  project   Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([developerId])
   @@index([projectId])
@@ -208,21 +229,267 @@ model AnalyticsCache {
 
 // Email Schedule Model (for customizable report scheduling)
 model EmailSchedule {
-  id              String   @id @default(uuid())
-  name            String   // User-friendly name for the schedule
-  reportType      String   // 'performance', 'issues', 'analytics', 'summary'
-  frequency       String   // 'daily', 'weekly', 'monthly', 'quarterly'
-  dayOfWeek       Int?     // 0-6 for weekly schedules (0 = Sunday)
-  dayOfMonth      Int?     // 1-31 for monthly schedules
-  time            String   // HH:MM format (24-hour)
-  recipients      String   // JSON array of email addresses
-  ccList          String?  // JSON array for CC
-  enabled         Boolean  @default(true)
-  lastRun         DateTime?
-  nextRun         DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id         String    @id @default(uuid())
+  name       String // User-friendly name for the schedule
+  reportType String // 'performance', 'issues', 'analytics', 'summary'
+  frequency  String // 'daily', 'weekly', 'monthly', 'quarterly'
+  dayOfWeek  Int? // 0-6 for weekly schedules (0 = Sunday)
+  dayOfMonth Int? // 1-31 for monthly schedules
+  time       String // HH:MM format (24-hour)
+  recipients String // JSON array of email addresses
+  ccList     String? // JSON array for CC
+  enabled    Boolean   @default(true)
+  lastRun    DateTime?
+  nextRun    DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@index([enabled])
   @@index([nextRun])
+}
+
+// ============================================================
+// GOVERNANCE LAYER — Client Relationship Management
+// ============================================================
+
+// SLA Rules — configurable per severity
+model SlaRule {
+  id                  String   @id @default(uuid())
+  severity            String   @unique // critical, high, medium
+  responseTimeHours   Float
+  resolutionTimeHours Float
+  atRiskThreshold     Float    @default(0.8)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([severity])
+}
+
+// Shared Issue — client-facing issue tracker with SLA
+model SharedIssue {
+  id                 String    @id @default(uuid())
+  clientId           String
+  title              String
+  description        String
+  severity           String // critical, high, medium
+  status             String    @default("open")
+  assignedOwnerId    String
+  raisedAt           DateTime  @default(now())
+  expectedResolution DateTime?
+  resolvedAt         DateTime?
+  rootCause          String?
+  resolutionSummary  String?
+  escalationLevel    Int       @default(0)
+  visibility         String    @default("internal")
+  tags               String?
+  notes              String?
+  slaStatus          String    @default("on-track")
+  responseDeadline   DateTime?
+  resolutionDeadline DateTime?
+  firstResponseAt    DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  client          Client                @relation(fields: [clientId], references: [id])
+  assignedOwner   Developer             @relation(fields: [assignedOwnerId], references: [id])
+  activities      SharedIssueActivity[]
+  incidentUpdates IncidentUpdate[]
+
+  @@index([clientId])
+  @@index([status, severity])
+  @@index([slaStatus])
+  @@index([raisedAt])
+  @@index([escalationLevel])
+}
+
+// Audit log for shared issues
+model SharedIssueActivity {
+  id            String   @id @default(uuid())
+  sharedIssueId String
+  userId        String
+  activityType  String
+  details       String?
+  createdAt     DateTime @default(now())
+
+  sharedIssue SharedIssue @relation(fields: [sharedIssueId], references: [id], onDelete: Cascade)
+  user        Developer   @relation(fields: [userId], references: [id])
+
+  @@index([sharedIssueId])
+  @@index([activityType])
+  @@index([createdAt])
+}
+
+// Major incident update protocol (30-min intervals, RCA tracking)
+model IncidentUpdate {
+  id                String   @id @default(uuid())
+  sharedIssueId     String
+  authorId          String
+  updateText        String
+  isAcknowledgement Boolean  @default(false)
+  isRca             Boolean  @default(false)
+  rcaFilePath       String?
+  notifiedClient    Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  sharedIssue SharedIssue @relation(fields: [sharedIssueId], references: [id], onDelete: Cascade)
+  author      Developer   @relation(fields: [authorId], references: [id])
+
+  @@index([sharedIssueId])
+  @@index([createdAt])
+}
+
+// Weekly health snapshot per client
+model ClientHealthScore {
+  id                String   @id @default(uuid())
+  clientId          String
+  weekStart         DateTime
+  weekEnd           DateTime
+  openIssues        Int      @default(0)
+  resolvedIssues    Int      @default(0)
+  slaBreaches       Int      @default(0)
+  escalations       Int      @default(0)
+  preventiveActions Int      @default(0)
+  incidentCount     Int      @default(0)
+  slaCompliancePct  Float    @default(100)
+  stabilityScore    Float    @default(100)
+  createdAt         DateTime @default(now())
+
+  client Client @relation(fields: [clientId], references: [id])
+
+  @@unique([clientId, weekStart])
+  @@index([clientId])
+  @@index([weekStart])
+}
+
+// Office / relationship visit log
+model OfficeVisit {
+  id            String    @id @default(uuid())
+  clientId      String
+  visitedById   String
+  visitDate     DateTime
+  agenda        String?
+  attendees     String?
+  summary       String?
+  actionItems   String?
+  nextVisitDate DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  client    Client    @relation(fields: [clientId], references: [id])
+  visitedBy Developer @relation(fields: [visitedById], references: [id])
+
+  @@index([clientId])
+  @@index([visitDate])
+}
+
+// Formal relationship reset event
+model RelationshipReset {
+  id            String    @id @default(uuid())
+  clientId      String
+  initiatedById String
+  reason        String
+  resetDate     DateTime
+  commitments   String?
+  reviewDate    DateTime?
+  status        String    @default("active")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  client      Client    @relation(fields: [clientId], references: [id])
+  initiatedBy Developer @relation(fields: [initiatedById], references: [id])
+
+  @@index([clientId])
+  @@index([status])
+}
+
+// Monthly Business Review
+model MonthlyBusinessReview {
+  id                 String   @id @default(uuid())
+  clientId           String
+  reviewMonth        DateTime
+  createdById        String
+  uptimePct          Float?
+  downtimeMinutes    Int?
+  performanceSummary String?
+  revenueImpact      String?
+  subscriberImpact   Int?
+  improvementRoadmap String?
+  featureRequests    String?
+  totalIssues        Int?
+  resolvedIssues     Int?
+  slaCompliancePct   Float?
+  escalationCount    Int?
+  status             String   @default("draft")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  client    Client    @relation(fields: [clientId], references: [id])
+  createdBy Developer @relation(fields: [createdById], references: [id])
+
+  @@unique([clientId, reviewMonth])
+  @@index([clientId])
+  @@index([reviewMonth])
+}
+
+// Proactive monitoring checklist
+model MonitoringChecklist {
+  id                   String    @id @default(uuid())
+  clientId             String
+  checkDate            DateTime
+  ownerId              String
+  channelUptime        Boolean   @default(false)
+  channelObservation   String?
+  geoIpValidation      Boolean   @default(false)
+  geoIpObservation     String?
+  stbAudit             Boolean   @default(false)
+  stbObservation       String?
+  techHealthCheck      Boolean   @default(false)
+  techObservation      String?
+  streamingQuality     Boolean   @default(false)
+  streamingObservation String?
+  recommendations      String?
+  completedAt          DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  client Client    @relation(fields: [clientId], references: [id])
+  owner  Developer @relation(fields: [ownerId], references: [id])
+
+  @@index([clientId])
+  @@index([checkDate])
+}
+
+// AI Preventive Recommendation
+model PreventiveRecommendation {
+  id             String   @id @default(uuid())
+  clientId       String
+  title          String
+  description    String
+  sourceIssueIds String // JSON array of issue IDs that triggered this
+  status         String   @default("pending") // pending, accepted, dismissed
+  createdAt      DateTime @default(now())
+
+  client Client @relation(fields: [clientId], references: [id])
+
+  @@index([clientId])
+}
+
+// Client Feature Request (Roadmap)
+model FeatureRequest {
+  id                String  @id @default(uuid())
+  clientId          String
+  title             String
+  description       String
+  status            String  @default("requested") // requested, planned, in-progress, completed, declined
+  priority          String  @default("medium") // high, medium, low
+  internalProjectId String? // Links to internal dev Project
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client  Client   @relation(fields: [clientId], references: [id])
+  project Project? @relation(fields: [internalProjectId], references: [id])
+
+  @@index([clientId])
+  @@index([status])
 }

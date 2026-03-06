@@ -15,6 +15,18 @@ import { setupEmailHandlers } from './email/handlers';
 import { initializeEmailScheduler } from './email/scheduler';
 import { setupSearchHandlers } from './ipc/search';
 import { setupEmailScheduleHandlers } from './ipc/email-schedules';
+// Governance Layer
+import { setupSharedIssueHandlers } from './ipc/shared-issues';
+import { setupSlaHandlers } from './ipc/sla';
+import { setupIncidentHandlers } from './ipc/incidents';
+import { setupClientHealthHandlers } from './ipc/client-health';
+import { setupOfficeVisitHandlers, setupRelationshipResetHandlers } from './ipc/relationship';
+import { setupMbrHandlers } from './ipc/mbr';
+import { setupMonitoringChecklistHandlers } from './ipc/monitoring-checklist';
+import { setupFeatureRequestHandlers } from './ipc/feature-requests';
+import { setupAiPreventiveHandlers } from './ipc/ai-preventive';
+import { startGovernanceScheduler, stopGovernanceScheduler } from './scheduler/governance-scheduler';
+import { setupAuthHandlers } from './ipc/auth';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -135,6 +147,7 @@ app.whenReady().then(async () => {
     console.log('🎨 Setting up IPC handlers...');
     // Set up IPC handlers
     setupProductHandlers();
+    setupAuthHandlers();
     setupClientHandlers();
     setupProjectHandlers();
     setupDeveloperHandlers();
@@ -147,10 +160,22 @@ app.whenReady().then(async () => {
     setupEmailHandlers();
     setupSearchHandlers();
     setupEmailScheduleHandlers();
-    console.log('🔍 Search handlers registered');
+    // Governance Layer handlers
+    setupSharedIssueHandlers();
+    setupSlaHandlers();
+    setupIncidentHandlers();
+    setupClientHealthHandlers();
+    setupOfficeVisitHandlers();
+    setupRelationshipResetHandlers();
+    setupMbrHandlers();
+    setupMonitoringChecklistHandlers();
+    setupFeatureRequestHandlers();
+    setupAiPreventiveHandlers();
+    console.log('🏛️  Governance handlers registered');
 
-    // Initialize email scheduler
+    // Initialize schedulers
     initializeEmailScheduler();
+    startGovernanceScheduler().catch(e => console.warn('Governance scheduler error:', e));
 
     // Theme handlers
     ipcMain.handle('theme:get', () => {
@@ -197,5 +222,5 @@ app.on('window-all-closed', () => {
 
 // Handle app quit
 app.on('will-quit', async () => {
-    // Cleanup if needed
+    stopGovernanceScheduler();
 });

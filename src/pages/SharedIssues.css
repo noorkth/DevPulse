@@ -1,0 +1,316 @@
+.shared-issues-page {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 16px;
+}
+
+.page-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+}
+
+.page-subtitle {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.filters-card {
+    padding: 16px 20px !important;
+    margin-bottom: 20px;
+}
+
+.filters-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    font-size: 0.87rem;
+    cursor: pointer;
+    outline: none;
+}
+
+.filter-select:focus {
+    border-color: var(--color-primary);
+}
+
+.table-card {
+    padding: 20px !important;
+}
+
+.results-count {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 14px;
+}
+
+.gov-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.87rem;
+}
+
+.gov-table th {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    font-size: 0.76rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.gov-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+}
+
+.gov-table tr:last-child td {
+    border-bottom: none;
+}
+
+.clickable-row {
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.clickable-row:hover {
+    background: var(--color-bg-hover);
+}
+
+.issue-title {
+    font-weight: 500;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.text-secondary {
+    color: var(--color-text-secondary);
+}
+
+.empty-state-small {
+    text-align: center;
+    padding: 40px;
+    color: var(--color-text-secondary);
+}
+
+.sev-badge,
+.sla-badge,
+.esc-badge {
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 0.73rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.sev-critical {
+    background: rgba(220, 38, 38, .15);
+    color: #dc2626;
+}
+
+.sev-high {
+    background: rgba(234, 88, 12, .15);
+    color: #ea580c;
+}
+
+.sev-medium {
+    background: rgba(245, 158, 11, .15);
+    color: #f59e0b;
+}
+
+.sla-on-track {
+    background: rgba(16, 185, 129, .15);
+    color: #10b981;
+}
+
+.sla-at-risk {
+    background: rgba(245, 158, 11, .15);
+    color: #f59e0b;
+}
+
+.sla-breached {
+    background: rgba(220, 38, 38, .15);
+    color: #dc2626;
+}
+
+.esc-badge {
+    background: rgba(99, 102, 241, .15);
+    color: #6366f1;
+}
+
+.esc-select {
+    background: rgba(99, 102, 241, .15);
+    color: #6366f1;
+    border: 1px solid rgba(99, 102, 241, .2);
+    border-radius: 20px;
+    padding: 3px 22px 3px 9px;
+    font-size: 0.73rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    cursor: pointer;
+    appearance: none;
+    outline: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236366f1%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px top 50%;
+    background-size: 8px auto;
+    transition: all 0.15s;
+}
+
+.esc-select:hover,
+.esc-select:focus {
+    background-color: rgba(99, 102, 241, .25);
+}
+
+.esc-select option {
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+}
+
+.vis-toggle {
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    transition: all 0.15s;
+}
+
+.vis-toggle.client {
+    border-color: #10b981;
+    color: #10b981;
+    background: rgba(16, 185, 129, .08);
+}
+
+.vis-toggle:hover {
+    border-color: var(--color-primary);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.action-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn:hover {
+    background: var(--color-bg-hover);
+}
+
+.action-btn.escalate:hover {
+    border-color: #f59e0b;
+    color: #f59e0b;
+}
+
+.action-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.modal-box {
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.modal-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 20px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.form-full {
+    grid-column: 1 / -1;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    padding: 9px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    font-size: 0.88rem;
+    width: 100%;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    border-color: var(--color-primary);
+}
+
+.form-textarea {
+    height: 90px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
