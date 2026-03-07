@@ -1,0 +1,628 @@
+/* ============================================================
+   governance.css — Shared styles for all governance components
+   ============================================================ */
+
+/* ── Badge base ── */
+.gov-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 99px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+
+.gov-badge--sm {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+}
+
+/* SLA badges */
+.gov-sla--on-track {
+    background: rgba(34, 197, 94, .15);
+    color: #22c55e;
+}
+
+.gov-sla--at-risk {
+    background: rgba(245, 158, 11, .15);
+    color: #f59e0b;
+}
+
+.gov-sla--breached {
+    background: rgba(239, 68, 68, .15);
+    color: #ef4444;
+}
+
+/* Escalation badges */
+.gov-esc--none {
+    background: var(--color-bg-hover);
+    color: var(--color-text-secondary);
+}
+
+.gov-esc--orange {
+    background: rgba(249, 115, 22, .15);
+    color: #f97316;
+}
+
+.gov-esc--red {
+    background: rgba(239, 68, 68, .15);
+    color: #ef4444;
+}
+
+.gov-esc--purple {
+    background: rgba(168, 85, 247, .15);
+    color: #a855f7;
+}
+
+/* ── Visibility Toggle ── */
+.gov-vis-toggle {
+    border-radius: 6px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid;
+    transition: all 0.15s;
+}
+
+.gov-vis-toggle--client {
+    background: rgba(6, 182, 212, .12);
+    border-color: rgba(6, 182, 212, .4);
+    color: #06b6d4;
+}
+
+.gov-vis-toggle--internal {
+    background: var(--color-bg-hover);
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+.gov-vis-toggle:hover:not(:disabled) {
+    opacity: 0.8;
+}
+
+.gov-vis-toggle:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+/* ── SLA Timer Bar ── */
+.gov-sla-bar {
+    width: 100%;
+}
+
+.gov-sla-bar__labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.35rem;
+}
+
+.gov-sla-bar__track {
+    height: 8px;
+    background: var(--color-bg-hover);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.gov-sla-bar__fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.5s ease;
+}
+
+.gov-sla-bar__fill--on-track {
+    background: #22c55e;
+}
+
+.gov-sla-bar__fill--at-risk {
+    background: #f59e0b;
+}
+
+.gov-sla-bar__fill--breached {
+    background: #ef4444;
+}
+
+/* ── Incident Feed ── */
+.gov-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.gov-feed__composer {
+    background: var(--color-bg-hover);
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.gov-feed__type-tabs {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.gov-feed__type-btn {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    padding: 0.3rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    transition: all 0.15s;
+}
+
+.gov-feed__type-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.gov-feed__type-btn.active {
+    background: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+}
+
+.gov-feed__textarea {
+    width: 100%;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+    padding: 0.75rem;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.gov-feed__textarea::placeholder {
+    color: var(--color-text-secondary);
+}
+
+.gov-feed__textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.gov-feed__composer-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+}
+
+.gov-feed__empty {
+    text-align: center;
+    padding: 3rem;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.gov-feed__list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.gov-feed__entry {
+    border-radius: 10px;
+    padding: 1rem;
+    border-left: 4px solid var(--color-border);
+    background: var(--color-bg-hover);
+}
+
+.gov-feed__entry--ack {
+    border-left-color: #22c55e;
+}
+
+.gov-feed__entry--rca {
+    border-left-color: #a855f7;
+}
+
+.gov-feed__entry--upd {
+    border-left-color: #3b82f6;
+}
+
+.gov-feed__entry-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.gov-feed__entry-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.gov-feed__type-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+}
+
+.gov-feed__type-label--ack {
+    background: rgba(34, 197, 94, .2);
+    color: #22c55e;
+}
+
+.gov-feed__type-label--rca {
+    background: rgba(168, 85, 247, .2);
+    color: #a855f7;
+}
+
+.gov-feed__type-label--upd {
+    background: rgba(59, 130, 246, .2);
+    color: #3b82f6;
+}
+
+.gov-feed__author {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--color-text-primary);
+}
+
+.gov-feed__time {
+    font-size: 0.78rem;
+    color: var(--color-text-secondary);
+}
+
+.gov-feed__notified {
+    font-size: 0.75rem;
+    color: #22c55e;
+}
+
+.gov-feed__text {
+    margin: 0;
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.gov-feed__rca-file {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    margin-top: 0.4rem;
+}
+
+.gov-btn-xs {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.72rem;
+    padding: 0.2rem 0.5rem;
+}
+
+.gov-btn-xs:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+/* ── Client Health Card ── */
+.gov-health-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.gov-health-card--clickable {
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.gov-health-card--clickable:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .1);
+}
+
+.gov-health-card__name {
+    margin: 0 0 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.gov-health-card__metrics {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.gov-health-card__metric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--color-bg-hover);
+    border-radius: 8px;
+    padding: 0.4rem 0.65rem;
+    min-width: 56px;
+}
+
+.gov-health-card__metric--danger {
+    border: 1px solid rgba(239, 68, 68, .3);
+}
+
+.gov-health-card__metric--warn {
+    border: 1px solid rgba(245, 158, 11, .3);
+}
+
+.gov-health-card__metric--good {
+    border: 1px solid rgba(34, 197, 94, .3);
+}
+
+.gov-health-card__val {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1;
+}
+
+.gov-health-card__metric--danger .gov-health-card__val {
+    color: #ef4444;
+}
+
+.gov-health-card__metric--warn .gov-health-card__val {
+    color: #f59e0b;
+}
+
+.gov-health-card__metric--good .gov-health-card__val {
+    color: #22c55e;
+}
+
+.gov-health-card__lbl {
+    font-size: 0.65rem;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-top: 0.15rem;
+}
+
+.gov-health-card__bars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.gov-health-card__bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.gov-health-card__bar-label {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    min-width: 90px;
+}
+
+.gov-health-card__bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--color-bg-hover);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.gov-health-card__bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.4s ease;
+}
+
+.gov-health-card__link {
+    margin-top: 0.65rem;
+    font-size: 0.8rem;
+    color: var(--color-primary);
+}
+
+/* ── Metrics Chart ── */
+.gov-chart {
+    padding: 0;
+}
+
+.gov-chart__title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    color: var(--color-text-primary);
+}
+
+.gov-chart__empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+}
+
+/* ── Client Selector ── */
+.gov-client-selector {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-text-primary);
+    font-size: 0.875rem;
+    padding: 0.45rem 0.85rem;
+    cursor: pointer;
+}
+
+.gov-client-selector:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+/* ── Monitoring Checklist Form ── */
+.gov-checklist-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.gov-checklist-form__progress {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.gov-checklist-form__progress-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--color-bg-hover);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.gov-checklist-form__progress-fill {
+    height: 100%;
+    background: #22c55e;
+    border-radius: 99px;
+    transition: width 0.4s ease;
+}
+
+.gov-checklist-form__progress-label {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+}
+
+.gov-checklist-form__items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.gov-checklist-item {
+    background: var(--color-bg-hover);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: border-color 0.15s;
+}
+
+.gov-checklist-item--done {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, .06);
+}
+
+.gov-checklist-item__label {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+}
+
+.gov-checklist-item__checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: #22c55e;
+    cursor: pointer;
+}
+
+.gov-checklist-item__text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.gov-checklist-item--done .gov-checklist-item__text {
+    color: #22c55e;
+}
+
+.gov-checklist-item__obs {
+    width: 100%;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    color: var(--color-text-primary);
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.gov-checklist-form__footer {
+    margin-top: 0.5rem;
+}
+
+/* ── MBR Form ── */
+.gov-mbr-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.gov-mbr-form__section {
+    background: var(--color-bg-hover);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.gov-mbr-form__section-title {
+    margin: 0 0 0.85rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.gov-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+/* ── Shared form tokens ── */
+.gov-field-label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+.gov-input,
+.gov-textarea,
+.gov-select {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+    box-sizing: border-box;
+}
+
+.gov-input:focus,
+.gov-textarea:focus,
+.gov-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.gov-textarea {
+    resize: vertical;
+    width: 100%;
+}
+
+.gov-input[disabled],
+.gov-textarea[disabled],
+.gov-select[disabled] {
+    opacity: 0.6;
+    cursor: default;
+}

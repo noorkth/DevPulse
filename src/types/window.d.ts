@@ -133,11 +133,93 @@ declare global {
                 delete: (id: string) => Promise<void>;
                 toggle: (id: string, enabled: boolean) => Promise<any>;
             };
+            // Governance Layer
+            sharedIssues: {
+                getAll: (filters?: any) => Promise<any[]>;
+                getById: (id: string) => Promise<any>;
+                create: (data: any) => Promise<any>;
+                update: (id: string, data: any, updatedById: string) => Promise<any>;
+                updateStatus: (id: string, status: string, updatedById: string) => Promise<any>;
+                escalate: (id: string, escalatedById: string) => Promise<any>;
+                setEscalation: (id: string, newLevel: number, updatedById: string) => Promise<any>;
+                toggleVisibility: (id: string, updatedById: string) => Promise<any>;
+                markFirstResponse: (id: string, respondedById: string) => Promise<any>;
+                delete: (id: string) => Promise<void>;
+            };
+            sla: {
+                getRules: () => Promise<any[]>;
+                updateRule: (severity: string, data: any) => Promise<any>;
+                getBreaches: (clientId?: string) => Promise<any[]>;
+                getMetrics: (clientId: string, startDate: string, endDate: string) => Promise<any>;
+                getStatus: (issueId: string) => Promise<any>;
+                runMonitor: () => Promise<any>;
+                getComplianceTrend: (clientId: string, weeks?: number) => Promise<any[]>;
+            };
+            incidents: {
+                getUpdates: (sharedIssueId: string) => Promise<any[]>;
+                addUpdate: (data: any) => Promise<any>;
+                uploadRca: (sharedIssueId: string, authorId: string, text: string, filePath?: string) => Promise<any>;
+                markClientNotified: (updateId: string) => Promise<any>;
+                getSummary: (sharedIssueId: string) => Promise<any>;
+            };
+            clientHealth: {
+                getDashboard: (clientId?: string) => Promise<any[]>;
+                getHistory: (clientId: string, weeks?: number) => Promise<any[]>;
+                getIncidentTrend: (clientId: string, weeks?: number) => Promise<any[]>;
+                generateSnapshot: (clientId: string) => Promise<any>;
+            };
+            officeVisits: {
+                getAll: (clientId?: string) => Promise<any[]>;
+                getById: (id: string) => Promise<any>;
+                create: (data: any) => Promise<any>;
+                update: (id: string, data: any) => Promise<any>;
+                delete: (id: string) => Promise<void>;
+            };
+            resets: {
+                getAll: (clientId?: string) => Promise<any[]>;
+                create: (data: any) => Promise<any>;
+                update: (id: string, data: any) => Promise<any>;
+                close: (id: string) => Promise<any>;
+                delete: (id: string) => Promise<void>;
+            };
+            mbr: {
+                getAll: (clientId?: string) => Promise<any[]>;
+                getById: (id: string) => Promise<any>;
+                create: (data: any) => Promise<any>;
+                update: (id: string, data: any) => Promise<any>;
+                publish: (id: string) => Promise<any>;
+                delete: (id: string) => Promise<void>;
+                autoPopulate: (clientId: string, reviewMonth: string) => Promise<any>;
+            };
+            monitoring: {
+                getAll: (clientId?: string) => Promise<any[]>;
+                getById: (id: string) => Promise<any>;
+                create: (data: any) => Promise<any>;
+                update: (id: string, data: any) => Promise<any>;
+                complete: (id: string) => Promise<any>;
+                delete: (id: string) => Promise<void>;
+                getStats: (clientId: string) => Promise<any>;
+            };
+            featureRequests: {
+                getAll: (clientId?: string, requestedById?: string) => Promise<any[]>;
+                create: (data: any, createdById: string) => Promise<any>;
+                update: (id: string, data: any, updatedById: string) => Promise<any>;
+                delete: (id: string, deletedById: string) => Promise<void>;
+            };
+            aiPreventive: {
+                getAll: (clientId?: string, requestedById?: string) => Promise<any[]>;
+                generate: () => Promise<any>;
+                updateStatus: (id: string, status: string, updatedById: string) => Promise<any>;
+            };
+            goals: any;
             auth: {
-                login: (username: string, password: string) => Promise<any>;
-                logout: () => Promise<{ success: boolean }>;
-                getCurrentUser: () => Promise<any | null>;
-                updatePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean }>;
+                login: (username: string, password: string) => Promise<{
+                    id: string;
+                    username: string;
+                    fullName: string;
+                    email: string;
+                    role: string;
+                }>;
             };
         };
     }

@@ -1,0 +1,472 @@
+/* ClientHealthDetail.css */
+
+.chd-page {
+    padding: 0 0 3rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-back {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    cursor: pointer;
+    font-size: 0.875rem;
+    padding: 0.25rem 0;
+    margin-bottom: 1rem;
+    display: inline-block;
+}
+
+.btn-back:hover {
+    text-decoration: underline;
+}
+
+/* ── header ── */
+.chd-header {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.chd-header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.chd-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0 0 0.2rem;
+}
+
+.chd-sub {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+/* ── metrics row ── */
+.chd-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+}
+
+.chd-metric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--color-bg-hover);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    min-width: 90px;
+    text-align: center;
+}
+
+.chd-metric.danger {
+    border-color: rgba(239, 68, 68, .35);
+}
+
+.chd-metric.warn {
+    border-color: rgba(245, 158, 11, .35);
+}
+
+.chd-metric.good {
+    border-color: rgba(34, 197, 94, .35);
+}
+
+.chd-metric-val {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1.1;
+}
+
+.chd-metric.danger .chd-metric-val {
+    color: #ef4444;
+}
+
+.chd-metric.warn .chd-metric-val {
+    color: #f59e0b;
+}
+
+.chd-metric.good .chd-metric-val {
+    color: #22c55e;
+}
+
+.chd-metric-lbl {
+    font-size: 0.72rem;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-top: 0.25rem;
+}
+
+/* ── score dial ── */
+.score-dial {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.dial-svg {
+    width: 70px;
+    height: 70px;
+}
+
+.dial-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* ── tabs ── */
+.chd-tabs {
+    display: flex;
+    gap: 0;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.chd-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 0.55rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.chd-tab:hover {
+    color: var(--color-text-primary);
+}
+
+.chd-tab.active {
+    background: var(--color-primary);
+    color: #fff;
+    font-weight: 600;
+}
+
+/* ── charts overview ── */
+.chd-charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.chart-card {
+    padding: 1.25rem;
+}
+
+.chart-card--wide {
+    grid-column: 1 / -1;
+}
+
+.chart-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    color: var(--color-text-primary);
+}
+
+/* ── issues card & history card ── */
+.chd-issues-card,
+.chd-history-card {
+    padding: 1.25rem;
+}
+
+.chd-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.chd-card-header h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.chd-card-title {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+}
+
+/* ── relationship tab ── */
+.chd-relationship {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.rel-card {
+    padding: 1.25rem;
+}
+
+.rel-card--wide {
+    grid-column: 1 / -1;
+}
+
+.rel-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.rel-entry {
+    display: flex;
+    gap: 1rem;
+    padding: 0.65rem;
+    background: var(--color-bg-hover);
+    border-radius: 8px;
+    border-left: 3px solid var(--color-border);
+}
+
+.rel-entry-date {
+    font-size: 0.78rem;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    min-width: 80px;
+    padding-top: 0.1rem;
+}
+
+.rel-entry-body {
+    flex: 1;
+}
+
+.rel-entry-title {
+    margin: 0 0 0.2rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.rel-entry-sub {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+}
+
+.reset-entry.reset-active {
+    border-left-color: #f59e0b;
+}
+
+.reset-entry.reset-closed {
+    border-left-color: #22c55e;
+}
+
+/* ── badges (shared with SharedIssueDetail) ── */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 99px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.sev-badge.sev-critical {
+    background: rgba(239, 68, 68, .15);
+    color: #ef4444;
+}
+
+.sev-badge.sev-high {
+    background: rgba(249, 115, 22, .15);
+    color: #f97316;
+}
+
+.sev-badge.sev-medium {
+    background: rgba(245, 158, 11, .15);
+    color: #f59e0b;
+}
+
+.sla-badge.sla-on-track {
+    background: rgba(34, 197, 94, .15);
+    color: #22c55e;
+}
+
+.sla-badge.sla-at-risk {
+    background: rgba(245, 158, 11, .15);
+    color: #f59e0b;
+}
+
+.sla-badge.sla-breached {
+    background: rgba(239, 68, 68, .15);
+    color: #ef4444;
+}
+
+.esc-badge {
+    background: rgba(168, 85, 247, .15);
+    color: #a855f7;
+}
+
+.status-badge.status-open {
+    background: rgba(59, 130, 246, .15);
+    color: #3b82f6;
+}
+
+.status-badge.status-in-progress {
+    background: rgba(249, 115, 22, .15);
+    color: #f97316;
+}
+
+.status-badge.status-resolved {
+    background: rgba(34, 197, 94, .15);
+    color: #22c55e;
+}
+
+.status-badge.status-closed {
+    background: var(--color-bg-hover);
+    color: var(--color-text-secondary);
+}
+
+.status-badge.status-draft {
+    background: rgba(245, 158, 11, .15);
+    color: #f59e0b;
+}
+
+.status-badge.status-published {
+    background: rgba(34, 197, 94, .15);
+    color: #22c55e;
+}
+
+.status-badge.status-active {
+    background: rgba(249, 115, 22, .15);
+    color: #f97316;
+}
+
+/* ── table ── */
+.gov-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.gov-table th {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.gov-table td {
+    padding: 0.65rem 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+}
+
+.gov-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.clickable-row {
+    cursor: pointer;
+}
+
+.clickable-row:hover td {
+    background: var(--color-bg-hover);
+}
+
+.issue-title {
+    font-weight: 600;
+    max-width: 280px;
+}
+
+.text-secondary {
+    color: var(--color-text-secondary);
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    cursor: pointer;
+    font-size: 0.875rem;
+    padding: 0;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+}
+
+/* ── empty states ── */
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--color-text-secondary);
+}
+
+.empty-state-small {
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+}
+
+/* ── not found ── */
+.chd-not-found {
+    text-align: center;
+    padding: 5rem 2rem;
+    color: var(--color-text-secondary);
+}
+
+/* responsive */
+@media (max-width: 768px) {
+
+    .chd-charts,
+    .chd-relationship {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-card--wide,
+    .rel-card--wide {
+        grid-column: 1;
+    }
+
+    .chd-metrics {
+        gap: 0.5rem;
+    }
+}

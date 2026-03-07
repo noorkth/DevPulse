@@ -51,17 +51,6 @@ export function setupProjectHandlers() {
                                 product: true,
                             },
                         },
-                        developers: {
-                            include: {
-                                developer: {
-                                    select: {
-                                        id: true,
-                                        fullName: true,
-                                        role: true,
-                                    },
-                                },
-                            },
-                        },
                         _count: {
                             select: {
                                 issues: true,
@@ -72,16 +61,8 @@ export function setupProjectHandlers() {
                     orderBy: { createdAt: 'desc' },
                 });
 
-                // Flatten the developers array for easier frontend access
-                const projectsWithFlatDevelopers = projects.map(p => ({
-                    ...p,
-                    developers: p.developers.map(dp => dp.developer)
-                }));
-
-                // Cache the results
-                CacheManager.set('list', cacheKey, projectsWithFlatDevelopers); // 60s cache
-
-                return projectsWithFlatDevelopers;
+                CacheManager.set('list', cacheKey, projects);
+                return projects;
             }
 
             // Build pagination query
@@ -172,50 +153,22 @@ export function setupProjectHandlers() {
             // Validate input data
             const validatedData = validate(ProjectCreateSchema, data);
 
-            const { developerIds, ...projectData } = validatedData;
-
             const project = await prisma.project.create({
                 data: {
-                    name: projectData.name,
-                    clientId: projectData.clientId,
-                    projectType: projectData.projectType,
-                    description: projectData.description,
-                    startDate: new Date(projectData.startDate),
-                    endDate: projectData.endDate ? new Date(projectData.endDate) : null,
-                    status: projectData.status,
-                    ...(developerIds && developerIds.length > 0 && {
-                        developers: {
-                            create: developerIds.map((devId: string) => ({
-                                developer: { connect: { id: devId } },
-                            })),
-                        },
-                    }),
-                },
-                include: {
-                    developers: {
-                        include: {
-                            developer: {
-                                select: {
-                                    id: true,
-                                    fullName: true,
-                                    role: true,
-                                },
-                            },
-                        },
-                    },
+                    name: validatedData.name,
+                    clientId: validatedData.clientId,
+                    projectType: validatedData.projectType,
+                    description: validatedData.description,
+                    startDate: new Date(validatedData.startDate),
+                    endDate: validatedData.endDate ? new Date(validatedData.endDate) : null,
+                    status: validatedData.status,
                 },
             });
 
-            // Invalidate cache
+            // Invalidate projects cache
             CacheManager.invalidatePattern('list', /^projects:getAll/);
 
-            // Flatten developers for response
-            const projectWithFlatDevelopers = {
-                ...project,
-                developers: project.developers.map(dp => dp.developer)
-            };
-
-            return projectWithFlatDevelopers;
+            return project;
         } catch (error) {
             console.error('Error creating project:', error);
             throw error;
@@ -237,55 +190,23 @@ export function setupProjectHandlers() {
             const validatedId = validate(UUIDSchema, id);
             const validatedData = validate(ProjectUpdateSchema, data);
 
-            const { developerIds, ...projectData } = validatedData;
-
-            // If developerIds provided, update the relationships
-            const developerUpdate = developerIds !== undefined ? {
-                developers: {
-                    deleteMany: {},  // Remove all existing
-                    create: developerIds.map((devId: string) => ({
-                        developer: { connect: { id: devId } },
-                    })),
-                },
-            } : {};
-
             const project = await prisma.project.update({
                 where: { id: validatedId },
                 data: {
-                    name: projectData.name,
-                    clientId: projectData.clientId,
-                    projectType: projectData.projectType,
-                    description: projectData.description,
-                    startDate: projectData.startDate ? new Date(projectData.startDate) : undefined,
-                    endDate: projectData.endDate ? new Date(projectData.endDate) : null,
-                    status: projectData.status,
-                    ...developerUpdate,
-                },
-                include: {
-                    developers: {
-                        include: {
-                            developer: {
-                                select: {
-                                    id: true,
-                                    fullName: true,
-                                    role: true,
-                                },
-                            },
-                        },
-                    },
+                    name: validatedData.name,
+                    clientId: validatedData.clientId,
+                    projectType: validatedData.projectType,
+                    description: validatedData.description,
+                    startDate: validatedData.startDate ? new Date(validatedData.startDate) : undefined,
+                    endDate: validatedData.endDate ? new Date(validatedData.endDate) : null,
+                    status: validatedData.status,
                 },
             });
 
-            // Invalidate cache
+            // Invalidate projects cache
             CacheManager.invalidatePattern('list', /^projects:getAll/);
 
-            // Flatten developers for response
-            const projectWithFlatDevelopers = {
-                ...project,
-                developers: project.developers?.map((dp: any) => dp.developer) || []
-            };
-
-            return projectWithFlatDevelopers;
+            return project;
         } catch (error) {
             console.error('Error updating project:', error);
             throw error;
@@ -311,6 +232,9 @@ export function setupProjectHandlers() {
                 where: { id: validatedId },
                 data: { status: 'archived' },
             });
+
+            // Invalidate projects cache
+            CacheManager.invalidatePattern('list', /^projects:getAll/);
 
             return project;
         } catch (error) {

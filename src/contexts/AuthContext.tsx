@@ -1,88 +1,53 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export interface AuthUser {
     id: string;
-    userId: string;
     username: string;
     fullName: string;
     email: string;
-    role: 'manager' | 'developer';
-    seniorityLevel: string;
-    loginAt?: string;
+    role: string;
 }
 
 interface AuthContextType {
     user: AuthUser | null;
-    isLoading: boolean;
-    isAuthenticated: boolean;
     login: (username: string, password: string) => Promise<void>;
-    logout: () => Promise<void>;
-    updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+    logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<AuthUser | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+const SESSION_KEY = 'devpulse_session';
 
-    // Restore session on app start
-    useEffect(() => {
-        const restoreSession = async () => {
-            try {
-                if (window.api?.auth) {
-                    const session = await window.api.auth.getCurrentUser();
-                    setUser(session || null);
-                }
-            } catch (err) {
-                console.error('Failed to restore session:', err);
-                setUser(null);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        restoreSession();
-    }, []);
-
-    const login = useCallback(async (username: string, password: string) => {
-        if (!window.api?.auth) throw new Error('Auth API not available');
-        const userData = await window.api.auth.login(username, password);
-        setUser(userData);
-    }, []);
-
-    const logout = useCallback(async () => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [user, setUser] = useState<AuthUser | null>(() => {
         try {
-            if (window.api?.auth) {
-                await window.api.auth.logout();
-            }
-        } finally {
-            setUser(null);
+            const stored = localStorage.getItem(SESSION_KEY);
+            return stored ? JSON.parse(stored) : null;
+        } catch {
+            return null;
         }
-    }, []);
+    });
 
-    const updatePassword = useCallback(async (currentPassword: string, newPassword: string) => {
-        if (!window.api?.auth) throw new Error('Auth API not available');
-        await window.api.auth.updatePassword(currentPassword, newPassword);
-    }, []);
+    const login = async (username: string, password: string) => {
+        const result = await window.api.auth.login(username, password);
+        setUser(result);
+        localStorage.setItem(SESSION_KEY, JSON.stringify(result));
+    };
+
+    const logout = () => {
+        setUser(null);
+        localStorage.removeItem(SESSION_KEY);
+    };
 
     return (
-        <AuthContext.Provider value={{
-            user,
-            isLoading,
-            isAuthenticated: !!user,
-            login,
-            logout,
-            updatePassword,
-        }}>
+        <AuthContext.Provider value={{ user, login, logout }}>
             {children}
         </AuthContext.Provider>
     );
-}
+};
 
-export function useAuth(): AuthContextType {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
-}
+export const useAuth = (): AuthContextType => {
+    const ctx = useContext(AuthContext);
+    if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+    return ctx;
+};

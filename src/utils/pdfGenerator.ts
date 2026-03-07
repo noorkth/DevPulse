@@ -2,6 +2,217 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { format } from 'date-fns';
 
+/** ─── MBR PDF export ───────────────────────────────────────────────── */
+interface MbrData {
+    client: { name: string };
+    createdBy?: { fullName: string } | null;
+    reviewMonth: string | Date;
+    status: string;
+    uptimePct?: number | null;
+    downtimeMinutes?: number | null;
+    slaCompliancePct?: number | null;
+    escalationCount?: number | null;
+    totalIssues?: number | null;
+    resolvedIssues?: number | null;
+    subscriberImpact?: number | null;
+    revenueImpact?: string | null;
+    performanceSummary?: string | null;
+    improvementRoadmap?: string | null;
+}
+
+export function generateMbrPDF(data: MbrData): void {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const W = pdf.internal.pageSize.getWidth();
+    const H = pdf.internal.pageSize.getHeight();
+    const margin = 20;
+    let y = 0;
+
+    // ── Cover band ──────────────────────────────────────────────────────
+    pdf.setFillColor(99, 102, 241);
+    pdf.rect(0, 0, W, 48, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(20);
+    pdf.text('Monthly Business Review', W / 2, 20, { align: 'center' });
+    pdf.setFontSize(13);
+    pdf.text(data.client.name, W / 2, 31, { align: 'center' });
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    const monthLabel = format(new Date(data.reviewMonth), 'MMMM yyyy');
+    pdf.text(monthLabel, W / 2, 41, { align: 'center' });
+
+    // ── Meta row ─────────────────────────────────────────────────────────
+    pdf.setTextColor(80, 80, 80);
+    pdf.setFontSize(9);
+    y = 56;
+    pdf.text(`Prepared by: ${data.createdBy?.fullName ?? '—'}`, margin, y);
+    pdf.text(`Status: ${data.status}`, W - margin, y, { align: 'right' });
+    pdf.text(`Generated: ${format(new Date(), 'PPP')}`, W / 2, y, { align: 'center' });
+
+    // ── Section: Performance Metrics ─────────────────────────────────────
+    y = 68;
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(13);
+    pdf.setTextColor(30, 30, 30);
+    pdf.text('Performance Metrics', margin, y);
+    pdf.setDrawColor(200, 200, 200);
+    pdf.line(margin, y + 2, W - margin, y + 2);
+    y += 10;
+
+    const metrics: [string, string][] = [
+        ['Uptime %', data.uptimePct != null ? `${data.uptimePct}%` : '—'],
+        ['Downtime', data.downtimeMinutes != null ? `${data.downtimeMinutes} min` : '—'],
+        ['SLA Compliance', data.slaCompliancePct != null ? `${data.slaCompliancePct}%` : '—'],
+        ['Total Issues', String(data.totalIssues ?? '—')],
+        ['Resolved Issues', String(data.resolvedIssues ?? '—')],
+        ['Escalations', String(data.escalationCount ?? '—')],
+        ['Subscriber Impact', String(data.subscriberImpact ?? '—')],
+        ['Revenue Impact', data.revenueImpact ?? '—'],
+    ];
+
+    // Draw 2-column metric boxes
+    const colW = (W - margin * 2 - 8) / 2;
+    metrics.forEach(([label, val], i) => {
+        const col = i % 2;
+        const row = Math.floor(i / 2);
+        const bx = margin + col * (colW + 8);
+        const by = y + row * 22;
+        pdf.setFillColor(248, 249, 250);
+        pdf.roundedRect(bx, by, colW, 18, 3, 3, 'F');
+        pdf.setFontSize(8);
+        pdf.setTextColor(120, 120, 120);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(label, bx + 5, by + 6);
+        pdf.setFontSize(11);
+        pdf.setTextColor(20, 20, 20);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(val, bx + 5, by + 14);
+    });
+    y += Math.ceil(metrics.length / 2) * 22 + 10;
+
+    // ── SLA Bar (visual) ──────────────────────────────────────────────────
+    if (data.slaCompliancePct != null) {
+        const pct = Math.min(100, data.slaCompliancePct);
+        const barW = W - margin * 2;
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(10);
+        pdf.setTextColor(30, 30, 30);
+        pdf.text('SLA Compliance', margin, y);
+        y += 5;
+        pdf.setFillColor(230, 230, 230);
+        pdf.roundedRect(margin, y, barW, 8, 2, 2, 'F');
+        const fillColor = pct >= 90 ? [34, 197, 94] : pct >= 70 ? [245, 158, 11] : [239, 68, 68];
+        pdf.setFillColor(fillColor[0], fillColor[1], fillColor[2]);
+        pdf.roundedRect(margin, y, barW * pct / 100, 8, 2, 2, 'F');
+        pdf.setFontSize(8);
+        pdf.setTextColor(255, 255, 255);
+        if (pct > 10) pdf.text(`${pct}%`, margin + 4, y + 5.5);
+        y += 16;
+    }
+
+    // ── Section: Narrative ────────────────────────────────────────────────
+    const addTextSection = (title: string, body: string | null | undefined) => {
+        if (!body) return;
+        if (y > H - 50) { pdf.addPage(); y = 20; }
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(13);
+        pdf.setTextColor(30, 30, 30);
+        pdf.text(title, margin, y);
+        pdf.setDrawColor(200, 200, 200);
+        pdf.line(margin, y + 2, W - margin, y + 2);
+        y += 10;
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(10);
+        pdf.setTextColor(60, 60, 60);
+        const lines = pdf.splitTextToSize(body, W - margin * 2);
+        lines.forEach((line: string) => {
+            if (y > H - 20) { pdf.addPage(); y = 20; }
+            pdf.text(line, margin, y);
+            y += 6;
+        });
+        y += 6;
+    };
+
+    addTextSection('Performance Summary', data.performanceSummary);
+    addTextSection('Improvement Roadmap', data.improvementRoadmap);
+
+    // ── Footer ────────────────────────────────────────────────────────────
+    const pages = (pdf as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(160, 160, 160);
+        pdf.text('DevPulse — Client Governance Platform', margin, H - 8);
+        pdf.text(`Page ${i} of ${pages}`, W - margin, H - 8, { align: 'right' });
+    }
+
+    const fileName = `MBR_${data.client.name.replace(/\s+/g, '_')}_${monthLabel.replace(' ', '_')}.pdf`;
+
+    // Attempt native save dialog via IPC, fallback to browser download
+    if (window.api && window.api.mbr && window.api.mbr.exportPdf) {
+        try {
+            const dataUri = pdf.output('datauristring');
+            window.api.mbr.exportPdf(dataUri, fileName).then((result: any) => {
+                if (!result.success && result.reason !== 'cancelled') {
+                    console.error('IPC Save failed:', result.reason);
+                    pdf.save(fileName);
+                }
+            });
+        } catch (e) {
+            console.error('IPC save error:', e);
+            pdf.save(fileName);
+        }
+    } else {
+        pdf.save(fileName);
+    }
+}
+
+/** ─── Shared Issues CSV export ─────────────────────────────────────── */
+export function exportSharedIssuesCsv(issues: any[]): void {
+    const headers = [
+        'Title', 'Client', 'Severity', 'Status', 'SLA Status', 'Escalation Level',
+        'Owner', 'Raised At', 'First Response', 'Resolution Deadline', 'Resolved At',
+        'Visibility', 'Root Cause', 'Resolution Summary',
+    ];
+
+    const escapeCell = (v: any) => {
+        const s = v == null ? '' : String(v);
+        return s.includes(',') || s.includes('"') || s.includes('\n')
+            ? `"${s.replace(/"/g, '""')}"`
+            : s;
+    };
+
+    const fmt = (d: string | null) => d ? new Date(d).toLocaleDateString('en-US') : '';
+
+    const rows = issues.map(i => [
+        escapeCell(i.title),
+        escapeCell(i.client?.name ?? ''),
+        escapeCell(i.severity),
+        escapeCell(i.status),
+        escapeCell(i.slaStatus),
+        escapeCell(i.escalationLevel),
+        escapeCell(i.assignedOwner?.fullName ?? ''),
+        fmt(i.raisedAt),
+        fmt(i.firstResponseAt),
+        fmt(i.resolutionDeadline),
+        fmt(i.resolvedAt),
+        escapeCell(i.visibility),
+        escapeCell(i.rootCause ?? ''),
+        escapeCell(i.resolutionSummary ?? ''),
+    ].join(','));
+
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `SharedIssues_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+
+
 interface PerformanceData {
     developer: {
         fullName: string;

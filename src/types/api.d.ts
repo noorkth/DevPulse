@@ -41,6 +41,17 @@ declare global {
                 delete: (id: string) => Promise<void>;
                 toggle: (id: string, enabled: boolean) => Promise<any>;
             };
+            goals: any;
+            sharedIssues: any;
+            sla: any;
+            incidents: any;
+            clientHealth: any;
+            officeVisits: any;
+            resets: any;
+            mbr: any;
+            monitoring: any;
+            featureRequests: any;
+            aiPreventive: any;
         };
     }
 }
