@@ -49,15 +49,15 @@ export class SlaEngine {
     static checkStatus(
         resolutionDeadline: Date,
         atRiskThreshold: number = 0.8,
-        raisedAt: Date,
+        slaStartedAt: Date,
         resolvedAt?: Date | null
     ): SlaStatus {
         const now = resolvedAt ?? new Date();
 
         if (now >= resolutionDeadline) return 'breached';
 
-        const totalWindowMs = resolutionDeadline.getTime() - raisedAt.getTime();
-        const elapsedMs = now.getTime() - raisedAt.getTime();
+        const totalWindowMs = resolutionDeadline.getTime() - slaStartedAt.getTime();
+        const elapsedMs = now.getTime() - slaStartedAt.getTime();
         const pctConsumed = elapsedMs / totalWindowMs;
 
         if (pctConsumed >= atRiskThreshold) return 'at-risk';
@@ -75,6 +75,7 @@ export class SlaEngine {
         const openIssues = await prisma.sharedIssue.findMany({
             where: {
                 status: { in: ['open', 'in-progress'] },
+                slaStartedAt: { not: null },   // Only monitor acknowledged issues
                 resolutionDeadline: { not: null },
             },
         });
@@ -82,7 +83,7 @@ export class SlaEngine {
         let updated = 0, breached = 0, atRisk = 0;
 
         for (const issue of openIssues) {
-            if (!issue.resolutionDeadline) continue;
+            if (!issue.resolutionDeadline || !issue.slaStartedAt) continue;
 
             // Get atRiskThreshold from SLA rule
             let threshold = 0.8;
@@ -94,7 +95,7 @@ export class SlaEngine {
             const newStatus = SlaEngine.checkStatus(
                 issue.resolutionDeadline,
                 threshold,
-                issue.raisedAt
+                issue.slaStartedAt  // Use SLA start time, not issue creation time
             );
 
             if (newStatus !== issue.slaStatus) {

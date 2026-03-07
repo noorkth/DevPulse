@@ -19,11 +19,6 @@ const AuthContext = createContext<AuthContextType | null>(null);
 const SESSION_KEY = 'devpulse_session';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    // Clear session on mount in development so we always get the login page when running 'npm run electron:dev'
-    if (import.meta.env.DEV) {
-        localStorage.removeItem(SESSION_KEY);
-    }
-
     const [user, setUser] = useState<AuthUser | null>(() => {
         try {
             const stored = localStorage.getItem(SESSION_KEY);

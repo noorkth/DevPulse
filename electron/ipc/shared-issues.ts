@@ -59,7 +59,7 @@ export function setupSharedIssueHandlers() {
         });
     });
 
-    // Create new shared issue — auto-calculates SLA deadlines
+    // Create new shared issue — SLA does NOT start until acknowledged
     ipcMain.handle('sharedIssues:create', async (_, data: {
         clientId: string;
         title: string;
@@ -77,7 +77,6 @@ export function setupSharedIssueHandlers() {
         assertCanMutate(actor, data.clientId);
 
         const raisedAt = new Date();
-        const { responseDeadline, resolutionDeadline } = await SlaEngine.calculateDeadlines(data.severity, raisedAt);
 
         const issue = await prisma.sharedIssue.create({
             data: {
@@ -91,9 +90,10 @@ export function setupSharedIssueHandlers() {
                 tags: data.tags ? JSON.stringify(data.tags) : null,
                 notes: data.notes ?? null,
                 visibility: data.visibility ?? 'internal',
-                responseDeadline,
-                resolutionDeadline,
-                slaStatus: 'on-track',
+                // SLA deadlines are null until acknowledged
+                responseDeadline: null,
+                resolutionDeadline: null,
+                slaStatus: 'pending',
             },
             include: {
                 client: { select: { id: true, name: true } },
@@ -112,6 +112,48 @@ export function setupSharedIssueHandlers() {
         });
 
         return issue;
+    });
+
+    // Acknowledge issue — starts the SLA clock and sets escalation to L1
+    ipcMain.handle('sharedIssues:acknowledge', async (_, id: string, acknowledgedById: string) => {
+        const existing = await prisma.sharedIssue.findUnique({ where: { id } });
+        if (!existing) throw new Error('Issue not found');
+        if (existing.acknowledgedAt) throw new Error('Issue is already acknowledged');
+
+        const actor = await getActor(acknowledgedById);
+        assertCanMutate(actor, existing.clientId);
+
+        const now = new Date();
+        const { responseDeadline, resolutionDeadline } = await SlaEngine.calculateDeadlines(existing.severity, now);
+
+        const updated = await prisma.sharedIssue.update({
+            where: { id },
+            data: {
+                acknowledgedAt: now,
+                acknowledgedById,
+                slaStartedAt: now,
+                responseDeadline,
+                resolutionDeadline,
+                slaStatus: 'on-track',
+                escalationLevel: 1, // Auto-assign L1 on acknowledgement
+            },
+            include: {
+                client: { select: { id: true, name: true } },
+                assignedOwner: { select: { id: true, fullName: true } },
+            },
+        });
+
+        // Audit log
+        await prisma.sharedIssueActivity.create({
+            data: {
+                sharedIssueId: id,
+                userId: acknowledgedById,
+                activityType: 'acknowledged',
+                details: JSON.stringify({ slaStartedAt: now, escalationLevel: 1 }),
+            },
+        });
+
+        return updated;
     });
 
     // Update issue fields

@@ -58,6 +58,16 @@ const SharedIssues: React.FC = () => {
         loadIssues();
     };
 
+    const handleAcknowledge = async (issue: any, e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            await window.api.sharedIssues.acknowledge(issue.id, user?.id || issue.assignedOwnerId);
+            loadIssues();
+        } catch (err: any) {
+            console.error('Acknowledge failed:', err);
+        }
+    };
+
     const handleEscalationChange = async (issue: any, newLevel: number) => {
         await window.api.sharedIssues.setEscalation(issue.id, newLevel, user?.id || issue.assignedOwnerId);
         loadIssues();
@@ -114,58 +124,78 @@ const SharedIssues: React.FC = () => {
             {loading ? <Loading size="medium" text="Loading issues..." /> : (
                 <Card className="table-card">
                     <div className="results-count">{issues.length} issues</div>
-                    <table className="gov-table">
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Client</th>
-                                <th>Severity</th>
-                                <th>SLA Status</th>
-                                <th>Escalation</th>
-                                <th>Visibility</th>
-                                <th>Owner</th>
-                                <th>Raised</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {issues.map((issue: any) => (
-                                <tr key={issue.id} onClick={() => navigate(`/shared-issues/${issue.id}`)} className="clickable-row">
-                                    <td className="issue-title">{issue.title}</td>
-                                    <td className="text-secondary">{issue.client?.name}</td>
-                                    <td><span className={`sev-badge sev-${issue.severity}`}>{issue.severity}</span></td>
-                                    <td><span className={`sla-badge sla-${issue.slaStatus}`}>{issue.slaStatus}</span></td>
-                                    <td onClick={e => e.stopPropagation()}>
-                                        <select
-                                            className="esc-select"
-                                            value={issue.escalationLevel}
-                                            onChange={e => handleEscalationChange(issue, Number(e.target.value))}
-                                        >
-                                            <option value={0}>None</option>
-                                            <option value={1}>L1</option>
-                                            <option value={2}>L2</option>
-                                            <option value={3}>L3</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <button
-                                            className={`vis-toggle ${issue.visibility}`}
-                                            onClick={e => handleToggleVisibility(issue, e)}
-                                            title="Toggle visibility"
-                                        >
-                                            {issue.visibility === 'client' ? '👁 Client' : '🔒 Internal'}
-                                        </button>
-                                    </td>
-                                    <td>{issue.assignedOwner?.fullName}</td>
-                                    <td className="text-secondary">{new Date(issue.raisedAt).toLocaleDateString()}</td>
-                                    <td>
-                                        <div className="action-buttons" onClick={e => e.stopPropagation()}>
-                                        </div>
-                                    </td>
+                    <div className="table-responsive">
+                        <table className="gov-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Client</th>
+                                    <th>Severity</th>
+                                    <th>SLA Status</th>
+                                    <th>Acknowledge</th>
+                                    <th>Escalation</th>
+                                    <th>Visibility</th>
+                                    <th>Owner</th>
+                                    <th>Raised</th>
+                                    <th>Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {issues.map((issue: any) => (
+                                    <tr key={issue.id} onClick={() => navigate(`/shared-issues/${issue.id}`)} className="clickable-row">
+                                        <td className="issue-title">{issue.title}</td>
+                                        <td className="text-secondary">{issue.client?.name}</td>
+                                        <td><span className={`sev-badge sev-${issue.severity}`}>{issue.severity}</span></td>
+                                        <td>
+                                            <span className={`sla-badge sla-${issue.slaStatus}`}>
+                                                {issue.slaStatus === 'pending' ? '⏸ Pending' : issue.slaStatus}
+                                            </span>
+                                        </td>
+                                        <td onClick={e => e.stopPropagation()}>
+                                            {!issue.acknowledgedAt ? (
+                                                <button
+                                                    className="ack-btn"
+                                                    onClick={e => handleAcknowledge(issue, e)}
+                                                    title="Acknowledge issue and start SLA clock"
+                                                >
+                                                    ✅ Acknowledge
+                                                </button>
+                                            ) : (
+                                                <span className="ack-done">✅ Acknowledged</span>
+                                            )}
+                                        </td>
+                                        <td onClick={e => e.stopPropagation()}>
+                                            <select
+                                                className="esc-select"
+                                                value={issue.escalationLevel}
+                                                onChange={e => handleEscalationChange(issue, Number(e.target.value))}
+                                            >
+                                                <option value={0}>None</option>
+                                                <option value={1}>L1</option>
+                                                <option value={2}>L2</option>
+                                                <option value={3}>L3</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <button
+                                                className={`vis-toggle ${issue.visibility}`}
+                                                onClick={e => handleToggleVisibility(issue, e)}
+                                                title="Toggle visibility"
+                                            >
+                                                {issue.visibility === 'client' ? '👁 Client' : '🔒 Internal'}
+                                            </button>
+                                        </td>
+                                        <td>{issue.assignedOwner?.fullName}</td>
+                                        <td className="text-secondary">{new Date(issue.raisedAt).toLocaleDateString()}</td>
+                                        <td>
+                                            <div className="action-buttons" onClick={e => e.stopPropagation()}>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                     {issues.length === 0 && <div className="empty-state-small">No issues found</div>}
                 </Card>
             )}

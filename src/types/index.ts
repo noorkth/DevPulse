@@ -172,6 +172,7 @@ declare global {
             monitoring: any;
             featureRequests: any;
             aiPreventive: any;
+            auth: any;
         };
     }
 }

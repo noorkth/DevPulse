@@ -49,15 +49,17 @@ export function setupSlaHandlers() {
     // Get real-time SLA status for a specific issue
     ipcMain.handle('sla:getStatus', async (_, issueId: string) => {
         const issue = await prisma.sharedIssue.findUnique({ where: { id: issueId } });
-        if (!issue || !issue.resolutionDeadline) return null;
+        // Return null for unacknowledged issues (SLA hasn't started yet)
+        if (!issue || !issue.resolutionDeadline || !(issue as any).slaStartedAt) return null;
 
         const rule = await prisma.slaRule.findUnique({ where: { severity: issue.severity } });
         const threshold = rule?.atRiskThreshold ?? 0.8;
 
-        const status = SlaEngine.checkStatus(issue.resolutionDeadline, threshold, issue.raisedAt);
+        const slaStartedAt = (issue as any).slaStartedAt as Date;
+        const status = SlaEngine.checkStatus(issue.resolutionDeadline, threshold, slaStartedAt);
 
-        const totalWindowMs = issue.resolutionDeadline.getTime() - issue.raisedAt.getTime();
-        const elapsedMs = Date.now() - issue.raisedAt.getTime();
+        const totalWindowMs = issue.resolutionDeadline.getTime() - slaStartedAt.getTime();
+        const elapsedMs = Date.now() - slaStartedAt.getTime();
         const pctConsumed = Math.min(100, Math.round((elapsedMs / totalWindowMs) * 100));
 
         return {

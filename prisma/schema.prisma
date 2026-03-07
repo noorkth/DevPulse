@@ -283,10 +283,14 @@ model SharedIssue {
   visibility         String    @default("internal")
   tags               String?
   notes              String?
-  slaStatus          String    @default("on-track")
+  slaStatus          String    @default("pending") // pending, on-track, at-risk, breached
   responseDeadline   DateTime?
   resolutionDeadline DateTime?
   firstResponseAt    DateTime?
+  // Acknowledgement fields — SLA clock only starts after acknowledgement
+  acknowledgedAt     DateTime? // null = not yet acknowledged
+  acknowledgedById   String?   // who acknowledged the issue
+  slaStartedAt       DateTime? // reference timestamp for SLA deadline calculations
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 

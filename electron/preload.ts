@@ -177,6 +177,7 @@ const api = {
         setEscalation: (id: string, newLevel: number, updatedById: string) => ipcRenderer.invoke('sharedIssues:setEscalation', id, newLevel, updatedById),
         toggleVisibility: (id: string, updatedById: string) => ipcRenderer.invoke('sharedIssues:toggleVisibility', id, updatedById),
         markFirstResponse: (id: string, respondedById: string) => ipcRenderer.invoke('sharedIssues:markFirstResponse', id, respondedById),
+        acknowledge: (id: string, acknowledgedById: string) => ipcRenderer.invoke('sharedIssues:acknowledge', id, acknowledgedById),
         delete: (id: string) => ipcRenderer.invoke('sharedIssues:delete', id),
     },
 
@@ -245,7 +246,7 @@ const api = {
         create: (data: any) => ipcRenderer.invoke('monitoring:create', data),
         update: (id: string, data: any) => ipcRenderer.invoke('monitoring:update', id, data),
         complete: (id: string) => ipcRenderer.invoke('monitoring:complete', id),
-        delete: (id: string) => ipcRenderer.invoke('monitoring:delete', id),
+        delete: (id: string, deletedById: string) => ipcRenderer.invoke('monitoring:delete', id, deletedById),
         getStats: (clientId: string) => ipcRenderer.invoke('monitoring:getStats', clientId),
     },
 

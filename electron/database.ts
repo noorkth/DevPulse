@@ -32,6 +32,31 @@ export function getDatabasePath(): string {
     return path.join(userDataPath, 'devpulse.db');
 }
 
+/**
+ * Run incremental schema migrations that aren't covered by the initial seed copy.
+ * Uses try/catch per column so we can safely re-run on every startup.
+ */
+async function runSchemaMigrations(dbPath: string): Promise<void> {
+    const Database = require('better-sqlite3');
+    const db = new Database(dbPath);
+
+    const addColumnSafe = (table: string, column: string, type: string) => {
+        try {
+            db.prepare(`ALTER TABLE "${table}" ADD COLUMN "${column}" ${type}`).run();
+            console.log(`[Migration] Added column ${table}.${column}`);
+        } catch {
+            // Column already exists — safe to ignore
+        }
+    };
+
+    // v4.1 — SLA Acknowledgement feature
+    addColumnSafe('SharedIssue', 'acknowledgedAt', 'DATETIME');
+    addColumnSafe('SharedIssue', 'acknowledgedById', 'TEXT');
+    addColumnSafe('SharedIssue', 'slaStartedAt', 'DATETIME');
+
+    db.close();
+}
+
 // Initialize database (create tables using Prisma Client)
 export async function initializeDatabase(): Promise<void> {
     const dbPath = getDatabasePath();
@@ -48,46 +73,24 @@ export async function initializeDatabase(): Promise<void> {
     console.log(`📊 Database exists: ${dbExists}`);
 
     try {
-        // Auto-apply schema changes using Prisma db push
-        // This ensures the production DB always has the latest schema
-        console.log('🔄 Syncing database schema...');
+        if (!dbExists) {
+            console.log('🔄 First time setup - copying seed database...');
+            const bundledDbPath = isDev
+                ? path.join(process.cwd(), 'prisma', 'devpulse.db')
+                : path.join(__dirname, '..', 'prisma', 'devpulse.db');
 
-        const { execSync } = await import('child_process');
-
-        try {
-            // Run prisma db push to sync schema (creates/updates tables automatically)
-            execSync('npx prisma db push --skip-generate --accept-data-loss', {
-                cwd: process.cwd(),
-                env: { ...process.env, DATABASE_URL: `file:${dbPath}` },
-                stdio: 'inherit' // Show output in console
-            });
-
-            if (!dbExists) {
-                console.log('✅ Database created with schema');
+            if (fs.existsSync(bundledDbPath)) {
+                fs.copyFileSync(bundledDbPath, dbPath);
+                console.log('✅ Database copied successfully from bundle.');
             } else {
-                console.log('✅ Schema synced successfully');
+                console.warn('⚠️ Bundled database not found at:', bundledDbPath);
             }
-        } catch (error: any) {
-            // If db push fails, try to provide helpful error message
-            if (error.message?.includes('already in sync')) {
-                console.log('✅ Schema already up to date');
-            } else if (!dbExists) {
-                // First time setup - create database manually using Prisma
-                console.log('🔄 Creating database for first time...');
-                const prisma = new PrismaClient({
-                    datasources: {
-                        db: {
-                            url: `file:${dbPath}`
-                        }
-                    }
-                });
-                await prisma.$connect();
-                await prisma.$disconnect();
-                console.log('✅ Database initialized');
-            } else {
-                console.warn('⚠️ Schema sync had issues, but continuing...', error.message);
-            }
+        } else {
+            console.log('✅ Database already exists.');
         }
+
+        // Apply incremental schema migrations on every startup (safe to re-run)
+        await runSchemaMigrations(dbPath);
 
         console.log('✅ Database initialization completed');
     } catch (error) {
@@ -96,3 +99,4 @@ export async function initializeDatabase(): Promise<void> {
         throw error;
     }
 }
+

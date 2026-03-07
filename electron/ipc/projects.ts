@@ -165,6 +165,9 @@ export function setupProjectHandlers() {
                 },
             });
 
+            // Invalidate projects cache
+            CacheManager.invalidatePattern('list', /^projects:getAll/);
+
             return project;
         } catch (error) {
             console.error('Error creating project:', error);
@@ -200,6 +203,9 @@ export function setupProjectHandlers() {
                 },
             });
 
+            // Invalidate projects cache
+            CacheManager.invalidatePattern('list', /^projects:getAll/);
+
             return project;
         } catch (error) {
             console.error('Error updating project:', error);
@@ -226,6 +232,9 @@ export function setupProjectHandlers() {
                 where: { id: validatedId },
                 data: { status: 'archived' },
             });
+
+            // Invalidate projects cache
+            CacheManager.invalidatePattern('list', /^projects:getAll/);
 
             return project;
         } catch (error) {

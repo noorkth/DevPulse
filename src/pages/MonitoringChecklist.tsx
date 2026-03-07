@@ -3,6 +3,7 @@ import Card from '../components/common/Card';
 import Loading from '../components/common/Loading';
 import PreventiveRecommendationCard from '../components/governance/PreventiveRecommendationCard';
 import { useToast } from '../components/common/Toast';
+import { useAuth } from '../contexts/AuthContext';
 
 const CHECKLIST_ITEMS = [
     { key: 'channelUptime', obsKey: 'channelObservation', label: 'Channel Uptime Monitoring', icon: '📡' },
@@ -13,6 +14,7 @@ const CHECKLIST_ITEMS = [
 ];
 
 const MonitoringChecklist: React.FC = () => {
+    const { user } = useAuth();
     const { success, error } = useToast();
     const [checklists, setChecklists] = useState<any[]>([]);
     const [recommendations, setRecommendations] = useState<any[]>([]);
@@ -83,9 +85,14 @@ const MonitoringChecklist: React.FC = () => {
     };
 
     const handleDelete = async (id: string) => {
-        await window.api.monitoring.delete(id);
-        setConfirmDeleteId(null);
-        loadAll();
+        try {
+            await window.api.monitoring.delete(id, user?.id);
+            setConfirmDeleteId(null);
+            loadAll();
+            success('Checklist deleted');
+        } catch (err: any) {
+            error(err.message);
+        }
     };
 
     const getProgress = (cl: any) => CHECKLIST_ITEMS.filter(i => cl[i.key]).length;

@@ -12,9 +12,10 @@ const fmtDate = (d: string | Date | null) =>
     d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
 
 function SlaBar({ issue }: { issue: any }) {
-    if (!issue.raisedAt || !issue.resolutionDeadline) return null;
-    const total = new Date(issue.resolutionDeadline).getTime() - new Date(issue.raisedAt).getTime();
-    const elapsed = Date.now() - new Date(issue.raisedAt).getTime();
+    const slaStart = issue.slaStartedAt ? new Date(issue.slaStartedAt) : null;
+    if (!slaStart || !issue.resolutionDeadline) return null;
+    const total = new Date(issue.resolutionDeadline).getTime() - slaStart.getTime();
+    const elapsed = Date.now() - slaStart.getTime();
     const pct = Math.min(100, Math.round((elapsed / total) * 100));
     const colorClass = issue.slaStatus === 'breached' ? 'breached' : issue.slaStatus === 'at-risk' ? 'at-risk' : 'on-track';
     return (
@@ -31,7 +32,12 @@ function SlaBar({ issue }: { issue: any }) {
 }
 
 function SlaBadge({ status }: { status: string }) {
-    const map: Record<string, string> = { 'on-track': '🟢 On Track', 'at-risk': '🟡 At Risk', 'breached': '🔴 Breached' };
+    const map: Record<string, string> = {
+        'on-track': '🟢 On Track',
+        'at-risk': '🟡 At Risk',
+        'breached': '🔴 Breached',
+        'pending': '⏸ Pending',
+    };
     return <span className={`badge sla-badge sla-${status}`}>{map[status] ?? status}</span>;
 }
 
@@ -141,6 +147,18 @@ const SharedIssueDetail: React.FC = () => {
         loadIssue();
     };
 
+    const handleAcknowledge = async () => {
+        if (!id) return;
+        const actorId = currentUserId || issue?.assignedOwnerId;
+        if (!actorId) return;
+        try {
+            await window.api.sharedIssues.acknowledge(id, actorId);
+            loadIssue();
+        } catch (err: any) {
+            console.error('Acknowledge failed:', err);
+        }
+    };
+
     const handleToggleVisibility = async () => {
         if (!id) return;
         const actorId = currentUserId || issue?.assignedOwnerId;
@@ -190,6 +208,12 @@ const SharedIssueDetail: React.FC = () => {
                         </span>
                     </div>
                     <div className="sid-actions">
+                        {/* Acknowledge CTA — shown until issue is acknowledged */}
+                        {!issue.acknowledgedAt && !isResolved && (
+                            <button className="ack-cta" onClick={handleAcknowledge}>
+                                ✅ Acknowledge &amp; Start SLA
+                            </button>
+                        )}
                         <button className="btn btn-sm btn-secondary" onClick={handleToggleVisibility}>
                             {issue.visibility === 'client' ? '🔒 Make Internal' : '👁 Share with Client'}
                         </button>
@@ -217,8 +241,13 @@ const SharedIssueDetail: React.FC = () => {
                     {issue.firstResponseAt && <><span>•</span><span>✅ First response: {fmt(issue.firstResponseAt)}</span></>}
                 </div>
 
-                {/* SLA progress bar */}
-                {!isResolved && <SlaBar issue={issue} />}
+                {/* SLA progress bar — only shown after acknowledgement */}
+                {!isResolved && issue.slaStartedAt && <SlaBar issue={issue} />}
+                {!isResolved && !issue.acknowledgedAt && (
+                    <div className="ack-pending-banner">
+                        ⏸ SLA timer has not started yet — click <strong>Acknowledge &amp; Start SLA</strong> to begin tracking.
+                    </div>
+                )}
                 {isResolved && issue.resolvedAt && (
                     <div className="sid-resolved-note">✅ Resolved on {fmt(issue.resolvedAt)}</div>
                 )}
@@ -366,6 +395,7 @@ const SharedIssueDetail: React.FC = () => {
                                     <div className="detail-row"><span className="detail-label">Owner</span><span>{issue.assignedOwner?.fullName}</span></div>
                                     <div className="detail-row"><span className="detail-label">Status</span><span className={`badge status-badge status-${issue.status}`}>{issue.status}</span></div>
                                     <div className="detail-row"><span className="detail-label">Raised</span><span>{fmt(issue.raisedAt)}</span></div>
+                                    <div className="detail-row"><span className="detail-label">Acknowledged</span><span>{issue.acknowledgedAt ? fmt(issue.acknowledgedAt) : <em className="text-muted">Not yet acknowledged</em>}</span></div>
                                     <div className="detail-row"><span className="detail-label">First Response</span><span>{issue.firstResponseAt ? fmt(issue.firstResponseAt) : <em className="text-muted">Not yet</em>}</span></div>
                                     <div className="detail-row"><span className="detail-label">Response Deadline</span><span>{fmt(issue.responseDeadline)}</span></div>
                                     <div className="detail-row"><span className="detail-label">Resolution Deadline</span><span>{fmt(issue.resolutionDeadline)}</span></div>
