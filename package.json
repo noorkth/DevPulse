@@ -1,7 +1,7 @@
 {
   "name": "devpulse",
   "private": true,
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Developer Productivity & Issue Intelligence Desktop App with AI-Powered Analytics",
   "main": "dist-electron/main.js",
   "scripts": {
@@ -133,6 +133,7 @@
       "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}",
       "package.json",
       "prisma/schema.prisma",
+      "prisma/devpulse.db",
       "prisma/migrations/**/*"
     ],
     "directories": {
