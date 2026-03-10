@@ -101,7 +101,10 @@ model Developer {
   officeVisits          OfficeVisit[]
   relationshipResets    RelationshipReset[]
   monthlyReviews        MonthlyBusinessReview[]
-  monitoringChecklists  MonitoringChecklist[]
+  monitoringChecklists   MonitoringChecklist[]
+  featureRequests        FeatureRequest[]
+  featureRequestActivities FeatureRequestActivity[]
+  featureRequestComments FeatureRequestComment[]
 
   @@index([email])
   @@index([seniorityLevel])
@@ -490,10 +493,47 @@ model FeatureRequest {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  createdById       String? // The user who logged the request
 
   client  Client   @relation(fields: [clientId], references: [id])
   project Project? @relation(fields: [internalProjectId], references: [id])
+  createdBy Developer? @relation(fields: [createdById], references: [id])
+
+  activities FeatureRequestActivity[]
+  comments   FeatureRequestComment[]
 
   @@index([clientId])
   @@index([status])
 }
+
+// Activity Log for Feature Requests (System-generated status updates, logging, etc)
+model FeatureRequestActivity {
+  id               String   @id @default(uuid())
+  featureRequestId String
+  userId           String?  // Developer who caused the action
+  activityType     String   // e.g., 'created', 'status_changed', 'priority_changed', 'commented'
+  details          String?  // JSON string containing detailed changes (e.g. { from: 'requested', to: 'in-progress' })
+  createdAt        DateTime @default(now())
+
+  featureRequest FeatureRequest @relation(fields: [featureRequestId], references: [id], onDelete: Cascade)
+  user           Developer?     @relation(fields: [userId], references: [id])
+
+  @@index([featureRequestId])
+  @@index([createdAt])
+}
+
+// Comments/Timeline for Feature Requests
+model FeatureRequestComment {
+  id               String   @id @default(uuid())
+  featureRequestId String
+  authorId         String
+  text             String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  featureRequest FeatureRequest @relation(fields: [featureRequestId], references: [id], onDelete: Cascade)
+  author         Developer      @relation(fields: [authorId], references: [id])
+
+  @@index([featureRequestId])
+}
+

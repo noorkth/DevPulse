@@ -54,6 +54,35 @@ async function runSchemaMigrations(dbPath: string): Promise<void> {
     addColumnSafe('SharedIssue', 'acknowledgedById', 'TEXT');
     addColumnSafe('SharedIssue', 'slaStartedAt', 'DATETIME');
 
+    // v4.2 - Feature Request Tracking
+    addColumnSafe('FeatureRequest', 'createdById', 'TEXT');
+
+    db.prepare(`
+        CREATE TABLE IF NOT EXISTS "FeatureRequestActivity" (
+            "id" TEXT NOT NULL PRIMARY KEY,
+            "featureRequestId" TEXT NOT NULL,
+            "userId" TEXT,
+            "activityType" TEXT NOT NULL,
+            "details" TEXT,
+            "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "FeatureRequestActivity_featureRequestId_fkey" FOREIGN KEY ("featureRequestId") REFERENCES "FeatureRequest" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT "FeatureRequestActivity_userId_fkey" FOREIGN KEY ("userId") REFERENCES "Developer" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+        )
+    `).run();
+
+    db.prepare(`
+        CREATE TABLE IF NOT EXISTS "FeatureRequestComment" (
+            "id" TEXT NOT NULL PRIMARY KEY,
+            "featureRequestId" TEXT NOT NULL,
+            "authorId" TEXT NOT NULL,
+            "text" TEXT NOT NULL,
+            "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "updatedAt" DATETIME NOT NULL,
+            CONSTRAINT "FeatureRequestComment_featureRequestId_fkey" FOREIGN KEY ("featureRequestId") REFERENCES "FeatureRequest" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT "FeatureRequestComment_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "Developer" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+        )
+    `).run();
+
     db.close();
 }
 

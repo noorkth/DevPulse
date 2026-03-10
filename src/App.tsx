@@ -27,6 +27,7 @@ import MonitoringChecklist from './pages/MonitoringChecklist';
 import OfficeVisits from './pages/OfficeVisits';
 import RelationshipResets from './pages/RelationshipResets';
 import FeatureRoadmap from './pages/FeatureRoadmap';
+import FeatureRequestDetail from './pages/FeatureRequestDetail';
 
 function AppRoutes() {
     const { user } = useAuth();
@@ -71,6 +72,7 @@ function AppRoutes() {
                     <Route path="office-visits" element={<OfficeVisits />} />
                     <Route path="relationship-resets" element={<RelationshipResets />} />
                     <Route path="feature-roadmap" element={<FeatureRoadmap />} />
+                    <Route path="feature-roadmap/:id" element={<FeatureRequestDetail />} />
                 </Route>
             </Routes>
         </HashRouter>

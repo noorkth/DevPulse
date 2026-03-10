@@ -42,7 +42,7 @@ export function setupSlaHandlers() {
     });
 
     // Get SLA metrics for a client over a period
-    ipcMain.handle('sla:getMetrics', async (_, clientId: string, startDate: string, endDate: string) => {
+    ipcMain.handle('sla:getMetrics', async (_, clientId: string | undefined, startDate: string, endDate: string) => {
         return SlaEngine.getMetrics(clientId, new Date(startDate), new Date(endDate));
     });
 
@@ -77,8 +77,8 @@ export function setupSlaHandlers() {
         return SlaEngine.runSlaMonitor();
     });
 
-    // Get SLA compliance trend (weekly) for a client
-    ipcMain.handle('sla:getComplianceTrend', async (_, clientId: string, weeks: number = 8) => {
+    // Get SLA compliance trend (weekly) for a client (or aggregated if clientId undefined)
+    ipcMain.handle('sla:getComplianceTrend', async (_, clientId?: string, weeks: number = 8) => {
         const results = [];
         const now = new Date();
 

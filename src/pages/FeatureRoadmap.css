@@ -124,26 +124,22 @@
     border-radius: 4px;
 }
 
-.roadmap-card-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-top: 10px;
-}
-
-.roadmap-card-actions .action-btn {
-    font-size: 0.7rem;
-    padding: 4px 8px;
+.move-to-select {
+    width: 100%;
+    padding: 7px 10px;
+    font-size: 0.8rem;
     border: 1px solid var(--color-border);
-    background: transparent;
+    background: var(--color-bg-secondary);
     color: var(--color-text-secondary);
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: all 0.2s;
+    outline: none;
+    transition: border-color 0.2s ease;
 }
 
-.roadmap-card-actions .action-btn:hover {
-    background: var(--color-bg-hover);
+.move-to-select:hover,
+.move-to-select:focus {
+    border-color: var(--color-primary);
     color: var(--color-text-primary);
 }
 

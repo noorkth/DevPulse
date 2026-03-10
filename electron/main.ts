@@ -24,6 +24,7 @@ import { setupOfficeVisitHandlers, setupRelationshipResetHandlers } from './ipc/
 import { setupMbrHandlers } from './ipc/mbr';
 import { setupMonitoringChecklistHandlers } from './ipc/monitoring-checklist';
 import { setupFeatureRequestHandlers } from './ipc/feature-requests';
+import { setupFeatureRequestActivityHandlers } from './ipc/feature-request-activity';
 import { setupAiPreventiveHandlers } from './ipc/ai-preventive';
 import { startGovernanceScheduler, stopGovernanceScheduler } from './scheduler/governance-scheduler';
 import { setupAuthHandlers } from './ipc/auth';
@@ -170,6 +171,7 @@ app.whenReady().then(async () => {
     setupMbrHandlers();
     setupMonitoringChecklistHandlers();
     setupFeatureRequestHandlers();
+    setupFeatureRequestActivityHandlers();
     setupAiPreventiveHandlers();
     console.log('🏛️  Governance handlers registered');
 

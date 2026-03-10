@@ -19,6 +19,7 @@ export function setupFeatureRequestHandlers() {
             include: {
                 client: true,
                 project: true,
+                createdBy: true,
             },
             orderBy: { createdAt: 'desc' },
         });
@@ -27,7 +28,7 @@ export function setupFeatureRequestHandlers() {
     ipcMain.handle('featureRequests:create', async (_, data: any, createdById: string) => {
         const actor = await getActor(createdById);
         assertCanMutate(actor, data.clientId);
-        return prisma.featureRequest.create({
+        const request = await prisma.featureRequest.create({
             data: {
                 title: data.title,
                 description: data.description,
@@ -35,8 +36,19 @@ export function setupFeatureRequestHandlers() {
                 priority: data.priority || 'medium',
                 clientId: data.clientId,
                 internalProjectId: data.internalProjectId,
+                createdById: createdById,
             },
         });
+
+        await prisma.featureRequestActivity.create({
+            data: {
+                featureRequestId: request.id,
+                userId: actor.id,
+                activityType: 'created',
+            }
+        });
+
+        return request;
     });
 
     ipcMain.handle('featureRequests:update', async (_, id: string, data: any, updatedById: string) => {
@@ -46,7 +58,7 @@ export function setupFeatureRequestHandlers() {
         const actor = await getActor(updatedById);
         assertCanMutate(actor, existing.clientId);
 
-        return prisma.featureRequest.update({
+        const updated = await prisma.featureRequest.update({
             where: { id },
             data: {
                 title: data.title,
@@ -56,6 +68,30 @@ export function setupFeatureRequestHandlers() {
                 internalProjectId: data.internalProjectId,
             },
         });
+
+        if (data.status && existing.status !== data.status) {
+            await prisma.featureRequestActivity.create({
+                data: {
+                    featureRequestId: id,
+                    userId: actor.id,
+                    activityType: 'status_changed',
+                    details: JSON.stringify({ from: existing.status, to: data.status }),
+                }
+            });
+        }
+
+        if (data.priority && existing.priority !== data.priority) {
+            await prisma.featureRequestActivity.create({
+                data: {
+                    featureRequestId: id,
+                    userId: actor.id,
+                    activityType: 'priority_changed',
+                    details: JSON.stringify({ from: existing.priority, to: data.priority }),
+                }
+            });
+        }
+
+        return updated;
     });
 
     ipcMain.handle('featureRequests:delete', async (_, id: string, deletedById: string) => {

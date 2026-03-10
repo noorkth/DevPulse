@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     LineChart, Line, BarChart, Bar,
+    PieChart, Pie, Cell,
+    Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
     XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import Loading from '../components/common/Loading';
@@ -46,6 +48,7 @@ const ClientHealthDetail: React.FC = () => {
     const [visits, setVisits] = useState<any[]>([]);
     const [resets, setResets] = useState<any[]>([]);
     const [mbrs, setMbrs] = useState<any[]>([]);
+    const [mttrTrend, setMttrTrend] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [snapshotLoading, setSnapshotLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<'overview' | 'issues' | 'history' | 'relationship'>('overview');
@@ -54,7 +57,7 @@ const ClientHealthDetail: React.FC = () => {
         if (!clientId) return;
         setLoading(true);
         try {
-            const [clients, dash, issues, hist, trend, compliance, visitData, resetData, mbrData] = await Promise.all([
+            const [clients, dash, issues, hist, trend, compliance, visitData, resetData, mbrData, mttrData] = await Promise.all([
                 window.api.clients.getAll(),
                 window.api.clientHealth.getDashboard(clientId),
                 window.api.sharedIssues.getAll({ clientId }),
@@ -64,6 +67,7 @@ const ClientHealthDetail: React.FC = () => {
                 window.api.officeVisits.getAll(clientId),
                 window.api.resets.getAll(clientId),
                 window.api.mbr.getAll(clientId),
+                window.api.clientHealth.getMTTRTrend(clientId, 8),
             ]);
             const found = clients.find((c: any) => c.id === clientId);
             setClient(found);
@@ -75,6 +79,7 @@ const ClientHealthDetail: React.FC = () => {
             setVisits(visitData.slice(0, 5));
             setResets(resetData.slice(0, 5));
             setMbrs(mbrData.slice(0, 5));
+            setMttrTrend(mttrData);
         } catch (err) {
             console.error('Error loading client health detail:', err);
         } finally {
@@ -94,6 +99,32 @@ const ClientHealthDetail: React.FC = () => {
             setSnapshotLoading(false);
         }
     };
+
+    const severityData = React.useMemo(() => {
+        const counts = { critical: 0, high: 0, medium: 0, low: 0 };
+        openIssues.forEach(i => {
+            const sev = (i.severity || 'low').toLowerCase() as keyof typeof counts;
+            if (counts[sev] !== undefined) counts[sev]++;
+            else counts.low++;
+        });
+        return [
+            { name: 'Critical', value: counts.critical, color: '#ef4444' },
+            { name: 'High', value: counts.high, color: '#f59e0b' },
+            { name: 'Medium', value: counts.medium, color: '#eab308' },
+            { name: 'Low', value: counts.low, color: '#3b82f6' }
+        ].filter(d => d.value > 0);
+    }, [openIssues]);
+
+    const radarData = React.useMemo(() => {
+        if (!summary) return [];
+        return [
+            { subject: 'SLA %', A: summary.slaCompliancePct ?? 100, fullMark: 100 },
+            { subject: 'Stability', A: summary.stabilityScore ?? 100, fullMark: 100 },
+            { subject: 'Preventive', A: Math.min((summary.preventiveActions ?? 0) * 10, 100), fullMark: 100 },
+            { subject: 'Issues', A: Math.max(100 - ((summary.openIssues ?? 0) * 5), 0), fullMark: 100 },
+            { subject: 'Escalations', A: Math.max(100 - ((summary.escalations ?? 0) * 20), 0), fullMark: 100 },
+        ];
+    }, [summary]);
 
     if (loading) return <Loading size="large" text="Loading client detail..." fullScreen />;
     if (!client) return (
@@ -211,6 +242,76 @@ const ClientHealthDetail: React.FC = () => {
                             </ResponsiveContainer>
                         </Card>
                     )}
+                    <Card className="chart-card">
+                        <h3 className="chart-title">MTTR Trend (8 weeks)</h3>
+                        <ResponsiveContainer width="100%" height={220}>
+                            <LineChart data={mttrTrend}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                                <XAxis dataKey="week" tick={{ fill: 'var(--color-text-secondary)', fontSize: 11 }} />
+                                <YAxis tick={{ fill: 'var(--color-text-secondary)' }} />
+                                <Tooltip contentStyle={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)', borderRadius: 8 }} />
+                                <Line type="monotone" dataKey="mttr" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} name="MTTR (Hours)" />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </Card>
+                    <Card className="chart-card">
+                        <h3 className="chart-title">Open Issues by Severity</h3>
+                        {severityData.length === 0 ? (
+                            <div className="empty-state-small" style={{ height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>No open issues</div>
+                        ) : (
+                            <ResponsiveContainer width="100%" height={220}>
+                                <PieChart>
+                                    <Pie
+                                        data={severityData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={80}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                    >
+                                        {severityData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip contentStyle={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)', borderRadius: 8 }} />
+                                    <Legend />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        )}
+                    </Card>
+                    {radarData.length > 0 && (
+                        <Card className="chart-card">
+                            <h3 className="chart-title">Stability Components</h3>
+                            <ResponsiveContainer width="100%" height={220}>
+                                <RadarChart outerRadius={70} data={radarData}>
+                                    <PolarGrid />
+                                    <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--color-text-secondary)', fontSize: 11 }} />
+                                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                    <Radar name="Health" dataKey="A" stroke="#6366f1" fill="#6366f1" fillOpacity={0.5} />
+                                    <Tooltip contentStyle={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)', borderRadius: 8 }} />
+                                </RadarChart>
+                            </ResponsiveContainer>
+                        </Card>
+                    )}
+                    <Card className="chart-card">
+                        <h3 className="chart-title">Preventive vs Reactive</h3>
+                        <ResponsiveContainer width="100%" height={220}>
+                            <BarChart data={[...history].reverse().map(h => ({
+                                week: fmt(h.weekStart),
+                                preventive: h.preventiveActions ?? 0,
+                                reactive: h.incidentCount ?? h.slaBreaches ?? 0
+                            }))}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                                <XAxis dataKey="week" tick={{ fill: 'var(--color-text-secondary)', fontSize: 11 }} />
+                                <YAxis tick={{ fill: 'var(--color-text-secondary)' }} />
+                                <Tooltip contentStyle={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)', borderRadius: 8 }} />
+                                <Bar dataKey="preventive" stackId="a" fill="#10b981" name="Preventive Actions" />
+                                <Bar dataKey="reactive" stackId="a" fill="#ef4444" name="Reactive (Breaches)" />
+                                <Legend />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </Card>
                 </div>
             )}
 

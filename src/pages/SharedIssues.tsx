@@ -79,6 +79,14 @@ const SharedIssues: React.FC = () => {
         loadIssues();
     };
 
+    const handleDelete = async (issueId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (window.confirm('Are you sure you want to delete this issue?')) {
+            await window.api.sharedIssues.delete(issueId);
+            loadIssues();
+        }
+    };
+
     const setFilter = (key: string, value: string) => {
         setFilters((prev: any) => value ? { ...prev, [key]: value } : Object.fromEntries(Object.entries(prev).filter(([k]) => k !== key)));
     };
@@ -189,6 +197,19 @@ const SharedIssues: React.FC = () => {
                                         <td className="text-secondary">{new Date(issue.raisedAt).toLocaleDateString()}</td>
                                         <td>
                                             <div className="action-buttons" onClick={e => e.stopPropagation()}>
+                                                <button
+                                                    className="btn btn-secondary btn-sm"
+                                                    onClick={() => navigate(`/shared-issues/${issue.id}`)}
+                                                >
+                                                    View
+                                                </button>
+                                                <button
+                                                    className="btn btn-secondary btn-sm"
+                                                    style={{ color: 'var(--color-danger)', borderColor: 'var(--color-danger)' }}
+                                                    onClick={e => handleDelete(issue.id, e)}
+                                                >
+                                                    Delete
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>

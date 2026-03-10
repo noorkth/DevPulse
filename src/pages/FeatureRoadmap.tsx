@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ClientSelector from '../components/governance/ClientSelector';
 import { useAuth } from '../contexts/AuthContext';
 import './FeatureRoadmap.css';
@@ -8,6 +8,7 @@ import { useToast } from '../components/common/Toast';
 const STATUS_COLUMNS = ['requested', 'planned', 'in-progress', 'completed'];
 
 const FeatureRoadmap: React.FC = () => {
+    const navigate = useNavigate();
     const { success, error } = useToast();
     const { user } = useAuth();
     const [selectedClient, setSelectedClient] = useState<string | null>(null);
@@ -107,7 +108,7 @@ const FeatureRoadmap: React.FC = () => {
                 </div>
                 <div className="roadmap-column-content">
                     {items.map(req => (
-                        <div className="roadmap-card" key={req.id}>
+                        <div className="roadmap-card" key={req.id} onClick={() => navigate(`/feature-roadmap/${req.id}`)} style={{ cursor: 'pointer' }}>
                             <div className="roadmap-card-header">
                                 <span className={`priority-indicator priority-${req.priority.toLowerCase()}`} title={`Priority: ${req.priority}`}></span>
                                 <h4>{req.title}</h4>
@@ -119,18 +120,19 @@ const FeatureRoadmap: React.FC = () => {
                             </div>
 
                             <div className="roadmap-card-actions">
-                                {STATUS_COLUMNS.map(s => {
-                                    if (s === status) return null;
-                                    return (
-                                        <button
-                                            key={s}
-                                            className="action-btn"
-                                            onClick={() => handleStatusChange(req.id, s)}
-                                        >
-                                            Move to {s}
-                                        </button>
-                                    );
-                                })}
+                                <select
+                                    className="move-to-select"
+                                    value={status}
+                                    onChange={e => handleStatusChange(req.id, e.target.value)}
+                                    onClick={e => e.stopPropagation()}
+                                >
+                                    <option value={status} disabled>Move to…</option>
+                                    {STATUS_COLUMNS.filter(s => s !== status).map(s => (
+                                        <option key={s} value={s}>
+                                            {s.replace('-', ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
                     ))}
@@ -209,6 +211,8 @@ const FeatureRoadmap: React.FC = () => {
                     </div>
                 </div>
             )}
+
+
 
             {isLoading ? (
                 <div className="loading-state">Loading roadmap...</div>

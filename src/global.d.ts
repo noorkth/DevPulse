@@ -27,6 +27,7 @@ declare global {
             mbr: any;
             monitoring: any;
             featureRequests: any;
+            featureRequestActivity: any;
             aiPreventive: any;
             auth: {
                 login: (username: string, password: string) => Promise<{

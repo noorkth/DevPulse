@@ -186,10 +186,10 @@ const api = {
         getRules: () => ipcRenderer.invoke('sla:getRules'),
         updateRule: (severity: string, data: any) => ipcRenderer.invoke('sla:updateRule', severity, data),
         getBreaches: (clientId?: string) => ipcRenderer.invoke('sla:getBreaches', clientId),
-        getMetrics: (clientId: string, startDate: string, endDate: string) => ipcRenderer.invoke('sla:getMetrics', clientId, startDate, endDate),
+        getMetrics: (clientId: string | undefined, startDate: string, endDate: string) => ipcRenderer.invoke('sla:getMetrics', clientId, startDate, endDate),
         getStatus: (issueId: string) => ipcRenderer.invoke('sla:getStatus', issueId),
         runMonitor: () => ipcRenderer.invoke('sla:runMonitor'),
-        getComplianceTrend: (clientId: string, weeks?: number) => ipcRenderer.invoke('sla:getComplianceTrend', clientId, weeks),
+        getComplianceTrend: (clientId?: string, weeks?: number) => ipcRenderer.invoke('sla:getComplianceTrend', clientId, weeks),
     },
 
     // Incidents
@@ -204,8 +204,9 @@ const api = {
     // Client Health
     clientHealth: {
         getDashboard: (clientId?: string) => ipcRenderer.invoke('clientHealth:getDashboard', clientId),
-        getHistory: (clientId: string, weeks?: number) => ipcRenderer.invoke('clientHealth:getHistory', clientId, weeks),
-        getIncidentTrend: (clientId: string, weeks?: number) => ipcRenderer.invoke('clientHealth:getIncidentTrend', clientId, weeks),
+        getHistory: (clientId?: string, weeks?: number) => ipcRenderer.invoke('clientHealth:getHistory', clientId, weeks),
+        getIncidentTrend: (clientId?: string, weeks?: number) => ipcRenderer.invoke('clientHealth:getIncidentTrend', clientId, weeks),
+        getMTTRTrend: (clientId?: string, weeks?: number) => ipcRenderer.invoke('clientHealth:getMTTRTrend', clientId, weeks),
         generateSnapshot: (clientId: string) => ipcRenderer.invoke('clientHealth:generateSnapshot', clientId),
     },
 
@@ -255,6 +256,12 @@ const api = {
         create: (data: any, createdById: string) => ipcRenderer.invoke('featureRequests:create', data, createdById),
         update: (id: string, data: any, updatedById: string) => ipcRenderer.invoke('featureRequests:update', id, data, updatedById),
         delete: (id: string, deletedById: string) => ipcRenderer.invoke('featureRequests:delete', id, deletedById),
+    },
+
+    featureRequestActivity: {
+        getActivities: (id: string) => ipcRenderer.invoke('featureRequests:getActivities', id),
+        getComments: (id: string) => ipcRenderer.invoke('featureRequests:getComments', id),
+        addComment: (id: string, authorId: string, text: string) => ipcRenderer.invoke('featureRequests:addComment', id, authorId, text),
     },
 
     // Auth

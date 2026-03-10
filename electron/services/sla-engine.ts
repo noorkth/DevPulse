@@ -129,7 +129,7 @@ export class SlaEngine {
     /**
      * Get SLA metrics for a client over a given period.
      */
-    static async getMetrics(clientId: string, startDate: Date, endDate: Date) {
+    static async getMetrics(clientId: string | undefined, startDate: Date, endDate: Date) {
         const prisma = getPrisma();
 
         const issues = await prisma.sharedIssue.findMany({
